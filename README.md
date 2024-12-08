@@ -11,3 +11,7 @@ Games that i script for at the moment
 
 
 and any script for any gamethat is requested
+
+Executor
+---------
+loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Executor%20UI.lua", true))()
