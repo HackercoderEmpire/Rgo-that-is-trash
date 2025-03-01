@@ -795,27 +795,6 @@ ASection:NewButton("Teleport To Middle", "Click to teleport to the middle withou
 end)
 
 local mouse = game.Players.LocalPlayer:GetMouse()
-
-ASection:NewToggle("Auto Clicker 'V'", "", function(state)
-    getgenv().autoClickV = state -- Track toggle state globally
-    
-    if state then
-        print("Auto Clicker activated.") -- Notify user
-        task.spawn(function()
-            local vim = game:GetService("VirtualInputManager")
-            while getgenv().autoClickV do
-                pcall(function()
-                    vim:SendKeyEvent(true, "V", false, nil)  -- Press 'V'
-                    vim:SendKeyEvent(false, "V", false, nil) -- Release 'V'
-                end)
-                task.wait(0.05) -- Throttle interval (20 clicks/second)
-            end
-        end)
-    else
-        print("Auto Clicker deactivated.") -- Notify user
-        getgenv().autoClickV = false -- Stop clicking
-    end
-end)
 -- Toggle for Auto Click 'C' Key
 ASection:NewToggle("Auto Click 'C'", "Automatically presses the C key repeatedly.", function(state)
     getgenv().autoClickC = state -- Set a global variable to track the toggle state
