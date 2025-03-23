@@ -2186,46 +2186,6 @@ GUISection:NewButton("Dex Explorer", "", function()
     loadstring(game:HttpGet("https://cdn.wearedevs.net/scripts/Dex%20Explorer.txt"))()
 end)
 -----------------------------------------------------------------------------------------------------------------------
-
--- Add the Super Mega Crash Button and J Keybind
-ASection:NewButton("Super Mega Crash J", "Activates the Super Mega Crash function", function()
-    activateSuperMegaCrash()
-end)
-
--- Bind the J Key to Activate the Super Mega Crash
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.J then
-        activateSuperMegaCrash()
-    end
-end)
-
--- Super Mega Crash Function
-function activateSuperMegaCrash()
-    local maxIterations = 25000 -- Max iterations for the crash effect
-    spawn(function()
-        for i = 1, maxIterations do
-            game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
-        end
-    end)
-
-    spawn(function()
-        for i = 1, maxIterations do
-            game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
-        end
-    end)
-
-    spawn(function()
-        for i = 1, maxIterations do
-            game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
-        end
-    end)
-
-    -- Ensure the event is turned off after activation
-    game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer(false)
-    wait()
-    game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer(false)
-end
-
 SSection:NewToggle("Infinite Super Rapid Punch", "Punches infinitely until disabled", function(state)
     if state then
         -- Activate Infinite Punch
