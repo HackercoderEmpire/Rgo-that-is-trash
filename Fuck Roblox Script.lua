@@ -10,24 +10,25 @@ local CyberBlueTheme = {
 
 local Window = Library.CreateLib("(Stronger Then Ever) Age Of Heroes", CyberBlueTheme)
 
+
 local ATab = Window:NewTab("Main");
-local ASection = ATab:NewSection("Main Tools");
-local AutoTab = Window:NewTab("Auto Teleport");
-local AutoSection = AutoTab:NewSection("Auto Teleport to any");
-local MainTab = Window:NewTab("AutoFarm");
-local MainSection = MainTab:NewSection("AutoFarm Menu");
+local ASection = ATab:NewSection("Useful Tools");
+local STab = Window:NewTab("Self");
+local SSection = STab:NewSection("Useful Self Tools");  
 local TargetTab = Window:NewTab("Target");
 local TargetSection = TargetTab:NewSection("Teleport To Player");
-local STab = Window:NewTab("Self Menu");
-local SSection = STab:NewSection("Self Power");
-local StatTab = Window:NewTab("AutoStat Menu");
-local StatSection = StatTab:NewSection("AutoStat Menu");
+local AutoTab = Window:NewTab("Teleport");
+local AutoSection = AutoTab:NewSection("Teleport/Auto Teleport");
+local StatTab = Window:NewTab("Auto Stat");
+local StatSection = StatTab:NewSection("Auto set ur Stats");
+local MainTab = Window:NewTab("Auto Farm");
+local MainSection = MainTab:NewSection("Auto Farm NPC/Player");
+local GUITab = Window:NewTab("GUI's");
+local GUISection = GUITab:NewSection("GUI's that can be fun/help");
 local TTab = Window:NewTab("Teleport Menu");
 local TSection = TTab:NewSection("Teleport Menu");
-local KTab = Window:NewTab("Keybind Menu");
-local KSection = KTab:NewSection("Keybind Menu");
-local GUITab = Window:NewTab("Tools/GUI's");
-local GUISection = GUITab:NewSection("");
+local KTab = Window:NewTab("KeyBinds");
+local KSection = KTab:NewSection("GUI/Game KeyBinds");
 local GTab = Window:NewTab("Misc");
 local GSection = GTab:NewSection("Chat spam/spoof - Infinite Yield");
 
