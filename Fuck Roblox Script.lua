@@ -8,7 +8,7 @@ local CyberBlueTheme = {
     ElementColor = Color3.fromRGB(30, 30, 45)     
 }
 
-local Window = Library.CreateLib("(Undetected) Age Of Heroes", CyberBlueTheme)
+local Window = Library.CreateLib("(Stronger Then Ever) Age Of Heroes", CyberBlueTheme)
 
 local ATab = Window:NewTab("Main");
 local ASection = ATab:NewSection("Main Tools");
@@ -31,36 +31,181 @@ local GUISection = GUITab:NewSection("");
 local GTab = Window:NewTab("Misc");
 local GSection = GTab:NewSection("Chat spam/spoof - Infinite Yield");
 
-  
+
+
+local teleportEnabled = false
+local teleportPosition = Vector3.new(-379.5263366699219, 94.1015625, 70.03193664550781)
+local player = game.Players.LocalPlayer
+
+local function teleportPlayer()
+    while teleportEnabled do
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        
+        if humanoidRootPart then
+            humanoidRootPart.CFrame = CFrame.new(teleportPosition)
+            print("Teleported to location: " .. tostring(teleportPosition))
+        else
+            warn("HumanoidRootPart not found! Waiting for respawn...")
+        end
+        
+        wait(0.1) -- Prevents lag and ensures smooth teleportation
+    end
+end
+
+AutoSection:NewToggle("Farm at middle", "Toggle teleportation to a specific location.", function(state)
+    teleportEnabled = state
+
+    if teleportEnabled then
+        print("Auto Teleport enabled.")
+        
+        spawn(function()
+            teleportPlayer()
+        end)
+
+        -- Keep teleporting even after death
+        player.CharacterAdded:Connect(function()
+            if teleportEnabled then
+                wait(0.5) -- Wait a moment to ensure character loads
+                teleportPlayer()
+            end
+        end)
+        
+    else
+        print("Auto Teleport disabled.")
+    end
+end)
+
+-- Platform Spawn Function
+function SpawnPlatform()
+    local platform = Instance.new("Part")
+    platform.Size = Vector3.new(50, 1, 50)
+    platform.Position = Vector3.new(-86.5912628173821, 1000035, 14.80127811431848)
+    platform.Anchored = true
+    platform.Parent = workspace
+    platform.Name = "CustomPlatform"
+    platform.BrickColor = BrickColor.new("Pink")
+end
+
+-- Teleport Function
+function TeleportToPlatform()
+    if workspace:FindFirstChild("CustomPlatform") then
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(-86.5912628173821, 1000036, 14.80127811431848)
+        end
+    end
+end
+
+ASection:NewButton("Spawn Platform","", SpawnPlatform)
+ASection:NewButton("Teleport to Platform","", TeleportToPlatform)
 
 
 
-ASection:NewToggle("Anti-Tele", "Prevents others from grabbing you!", function(state)
-    getgenv().AntiT = state
 
-    -- Get necessary services
+
+print("Part manipulation tool initialized. Click to select a part. Press R for Move, T for Resize, Z or Y for Rotate, G to delete. Current mode: " .. DefaultMode)
+
+print("Press B to disable or enable Part manipulation tool !")
+end);
+-----------------------------------------------------------------------------
+ASection:NewToggle("Anti-Tele", "Reduces the effectiveness of grab effects!", function(state)
+    getgenv().AntiT = state  -- Track if anti-grab is enabled
+
     local player = game.Players.LocalPlayer
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local RunService = game:GetService("RunService")
 
     -- Find the event safely
     local toggleTelekinesisEvent = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("ToggleTelekinesis")
 
-    -- Function to block grab attempts
-    local function preventGrab()
-        if getgenv().AntiT and toggleTelekinesisEvent and player.Character then
-            toggleTelekinesisEvent:InvokeServer(nil, false) -- Simple protection
+    -- Cooldown time to avoid excessive protection (adjustable)
+    local protectionCooldown = 1  -- 1-second cooldown between protections
+    local lastProtectionTime = 0  -- Time of last protection activation
+
+    -- Function to weaken grabs instead of fully blocking them
+    local function weakenGrab()
+        if getgenv().AntiT and toggleTelekinesisEvent and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            local currentTime = tick()
+
+            -- Prevent spam by checking cooldown
+            if currentTime - lastProtectionTime >= protectionCooldown then
+                lastProtectionTime = currentTime  -- Update the last activation time
+                
+                -- Apply limited interference (instead of blocking completely)
+                local weakenFactor = math.random(0.3, 0.7)  -- Reduce teleport/grab strength by 30% - 70%
+
+                -- Invoke the event but with a weaker effect
+                toggleTelekinesisEvent:InvokeServer(hrp.Position * weakenFactor, false, player.Character)
+                print("Roblox Sucks", weakenFactor)
+            end
         end
     end
 
-    -- Activate protection when enabled
+    -- Activate limited protection
     if state then
-        preventGrab()
+        if toggleTelekinesisEvent then
+            -- Connect to a slower loop instead of every frame
+            getgenv().protectionConnection = RunService.Heartbeat:Connect(weakenGrab)
+        else
+            warn("Haha roblox sucks")
+        end
     else
+        -- Disconnect when toggled off
+        if getgenv().protectionConnection then
+            getgenv().protectionConnection:Disconnect()
+            getgenv().protectionConnection = nil
+        end
         getgenv().AntiT = false
     end
 end)
 
 
+----------------------------------------------------------------
+
+local isSpamming = false
+
+-- Toggle for Extreme Lag Spam
+ASection:NewToggle("Server Lag Spam", "Overloads the server with requests", function(state)
+    isSpamming = state -- Toggle spam state
+
+    if isSpamming then
+        while isSpamming do
+            for _ = 1, 100000 do  -- Sends 100,000 requests per tick (massive lag)
+                game:GetService("ReplicatedStorage").Events.ToggleSpeed:FireServer(true)
+                game:GetService("ReplicatedStorage").Events.UpgradeAbility:InvokeServer("Speed")
+                game:GetService("ReplicatedStorage").Events.ToggleTelekinesis:InvokeServer(Vector3.new(0,0,0), false)
+            end
+        end
+    else
+        game:GetService("ReplicatedStorage").Events.ToggleSpeed:FireServer(false) -- Stops spamming
+    end
+end)
+
+local isSpamming = false
+
+-- Toggle for Controlled Lag
+ASection:NewToggle("Controlled Server Lag", "Slows down the server but avoids instant crash", function(state)
+    isSpamming = state -- Toggle lag state
+
+    if isSpamming then
+        coroutine.wrap(function()
+            while isSpamming do
+                for _ = 1, 5000 do  -- Sends 5000 requests per tick (heavy lag, but not an instant crash)
+                    game:GetService("ReplicatedStorage").Events.ToggleSpeed:FireServer(true)
+                    game:GetService("ReplicatedStorage").Events.UpgradeAbility:InvokeServer("Speed")
+                    game:GetService("ReplicatedStorage").Events.ToggleTelekinesis:InvokeServer(Vector3.new(0,0,0), false)
+                end
+                wait(0.05) -- Small delay to prevent complete freeze
+            end
+        end)()
+    else
+        game:GetService("ReplicatedStorage").Events.ToggleSpeed:FireServer(false) -- Stops spamming
+    end
+end)
+
+---------------------------------------------------------------
 
 -- Coordinates from your image
 local teleportCoords = Vector3.new(-1742.1265869140625, 442.5755615234375, 1210.2801513671875)
@@ -175,12 +320,6 @@ end
 if teleportEnabled then
     teleportPlayer() 
 end
-
-
-
-
-
-
 
 
 local function teleportPlayerTo(location)
@@ -360,236 +499,1740 @@ AutoSection:NewToggle("Top Of Motel Sign", "Toggles the ultra-fast auto clicker"
         spawn(autoClick) 
     end
 end)
+---------------------------------------------------------------------------------------------------------------------------------------
+GUISection:NewButton("useful tools", "", function()
+local servizioTastiera = game:GetService("UserInputService");
 
-GUISection:NewButton("Tools","", function(state)
-    local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/mini%20tools.lua"))()
-end)
-GUISection:NewButton("Custom Executor","", function(state)
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local TitleBar = Instance.new("TextLabel")
-    local CloseButton = Instance.new("TextButton")
-    local TextBox = Instance.new("TextBox")
-    local ExecuteButton = Instance.new("TextButton")
-    local ESPButton = Instance.new("TextButton")
-    local ChatButton = Instance.new("TextButton")
-    local ChatFrame = Instance.new("Frame")
-    local ChatLog = Instance.new("TextLabel")
-    
-    -- Properties
-    ScreenGui.Name = "ExecutorUI"
-    ScreenGui.Parent = game.CoreGui
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    MainFrame.BackgroundTransparency = 0.5  -- Semi-transparent background
-    MainFrame.Size = UDim2.new(0, 500, 0, 250)  -- Made wider
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -125)
-    MainFrame.Draggable = true
-    MainFrame.Active = true
-    
-    TitleBar.Name = "TitleBar"
-    TitleBar.Parent = MainFrame
-    TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    TitleBar.Size = UDim2.new(1, 0, 0, 25)
-    TitleBar.Font = Enum.Font.SourceSansBold
-    TitleBar.Text = "Lua Executor (Shadow Recon)"
-    TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleBar.TextSize = 16
-    
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = MainFrame
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    CloseButton.Position = UDim2.new(1, -25, 0, 0)
-    CloseButton.Size = UDim2.new(0, 25, 0, 25)
-    CloseButton.Font = Enum.Font.SourceSansBold
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 16
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
-    
-    TextBox.Name = "TextBox"
-    TextBox.Parent = MainFrame
-    TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    TextBox.Size = UDim2.new(1, -20, 0.6, -35)
-    TextBox.Position = UDim2.new(0, 10, 0, 35)
-    TextBox.Font = Enum.Font.Code
-    TextBox.Text = "-- Write your script here"
-    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextBox.TextSize = 14
-    TextBox.ClearTextOnFocus = false
-    TextBox.TextXAlignment = Enum.TextXAlignment.Left
-    TextBox.TextYAlignment = Enum.TextYAlignment.Top
-    TextBox.MultiLine = true
-    TextBox.ClipsDescendants = true
-    
-    -- Adjusting Button Sizes and Positions
-    ExecuteButton.Name = "ExecuteButton"
-    ExecuteButton.Parent = MainFrame
-    ExecuteButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-    ExecuteButton.Size = UDim2.new(0.3, -10, 0, 25)  -- Smaller width to fit more buttons side by side
-    ExecuteButton.Position = UDim2.new(0, 10, 1, -40)
-    ExecuteButton.Font = Enum.Font.SourceSansBold
-    ExecuteButton.Text = "Execute"
-    ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ExecuteButton.TextSize = 16
-    ExecuteButton.MouseButton1Click:Connect(function()
-        local scriptToRun = TextBox.Text
-        if scriptToRun then
-            loadstring(scriptToRun)()
-        end
-    end)
-    
-    ESPButton.Name = "ESPButton"
-    ESPButton.Parent = MainFrame
-    ESPButton.BackgroundColor3 = Color3.fromRGB(50, 50, 200)
-    ESPButton.Size = UDim2.new(0.3, -10, 0, 25)  -- Smaller width
-    ESPButton.Position = UDim2.new(0.3, 5, 1, -40)  -- Adjusted to be next to ExecuteButton
-    ESPButton.Font = Enum.Font.SourceSansBold
-    ESPButton.Text = "Toggle ESP"
-    ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ESPButton.TextSize = 16
-    ESPButton.MouseButton1Click:Connect(function()
-        local espEnabled = false
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game.Players.LocalPlayer and not v.Character:FindFirstChild("ESPBox") then
-                local esp = Instance.new("BoxHandleAdornment")
-                esp.Name = "ESPBox"
-                esp.Adornee = v.Character
-                esp.Size = Vector3.new(4, 5, 2)
-                esp.Color3 = Color3.new(128, 0, 128)
-                esp.AlwaysOnTop = true
-                esp.Parent = v.Character
-                espEnabled = true
-            else
-                if v.Character:FindFirstChild("ESPBox") then
-                    v.Character:FindFirstChild("ESPBox"):Destroy()
-                    espEnabled = false
-                end
-            end
-        end
-        ESPButton.Text = espEnabled and "Disable ESP" or "Enable ESP"
-    end)
-    
-    ChatButton.Name = "ChatButton"
-    ChatButton.Parent = MainFrame
-    ChatButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    ChatButton.Size = UDim2.new(0.3, -10, 0, 25)  -- Smaller width
-    ChatButton.Position = UDim2.new(0.6, 5, 1, -40)  -- Placed next to ESPButton
-    ChatButton.Font = Enum.Font.SourceSansBold
-    ChatButton.Text = "Show Chat"
-    ChatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ChatButton.TextSize = 16
-    ChatButton.MouseButton1Click:Connect(function()
-        -- Create and display the Chat Log UI
-        if not ChatFrame.Parent then
-            ChatFrame.Parent = ScreenGui
-            ChatFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-            ChatFrame.BackgroundTransparency = 0.7
-            ChatFrame.Size = UDim2.new(0, 500, 0, 200)  -- Widened ChatFrame
-            ChatFrame.Position = UDim2.new(0.5, -250, 0.5, 75)
+-- age of heroes
+
+local MainContainer = Instance.new("ScreenGui", game.CoreGui);
+local MainFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local FunctionsFrame = Instance.new("ScrollingFrame")
+local Layout = Instance.new("UIListLayout")
+local CloseButtonMainFrame = Instance.new("TextButton")
+local ReduceButtonMainFrame = Instance.new("TextButton")
+local PlayerFrame = Instance.new("Frame")
+local PlayerListLabel = Instance.new("TextLabel")
+local ContainerFrame = Instance.new("ScrollingFrame")
+local Layout_2 = Instance.new("UIListLayout")
+local SelectedPlayerLabel = Instance.new("TextLabel")
+local CloseButtonPlayerFrame = Instance.new("TextButton")
+local DebugFrame = Instance.new("Frame")
+local DebugLabel = Instance.new("TextLabel")
+local StringsFrame = Instance.new("ScrollingFrame")
+local Layout_3 = Instance.new("UIListLayout")
+local CloseButtonDebugFrame = Instance.new("TextButton")
+
+--[[
+Genera l'interfaccia dello script
+@param titoloInterfaccia as String, titolo da visualizzare sull'interfaccia
+]]--
+local function generaInterfaccia(titoloInterfaccia)	
+	MainContainer.Name = "MainContainer"
+	MainContainer.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	MainFrame.Name = "MainFrame"
+	MainFrame.Parent = MainContainer
+	MainFrame.Active = true
+	MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	MainFrame.BackgroundTransparency = 0.200
+	MainFrame.BorderColor3 = Color3.fromRGB(130, 203, 255)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.ClipsDescendants = true
+	MainFrame.Position = UDim2.new(0.0755441561, 0, 0.176687121, 0)
+	MainFrame.Selectable = true
+	MainFrame.Size = UDim2.new(0, 500, 0, 300)
+
+	TitleLabel.Name = "TitleLabel";
+	TitleLabel.Parent = MainFrame
+	TitleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	TitleLabel.BackgroundTransparency = 0.100
+	TitleLabel.BorderSizePixel = 0
+	TitleLabel.Selectable = true
+	TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+	TitleLabel.Font = Enum.Font.Arcade
+	TitleLabel.Text = titoloInterfaccia;
+	TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TitleLabel.TextSize = 25.000
+
+	FunctionsFrame.Name = "FunctionsFrame"
+	FunctionsFrame.Parent = MainFrame
+	FunctionsFrame.Active = true
+	FunctionsFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	FunctionsFrame.BackgroundTransparency = 1.000
+	FunctionsFrame.Position = UDim2.new(0, 0, 0.100000001, 0)
+	FunctionsFrame.Size = UDim2.new(1, 0, 0.899999976, 0)
+	FunctionsFrame.ScrollBarThickness = 2
+
+	Layout.Name = "Layout"
+	Layout.Parent = FunctionsFrame
+
+	CloseButtonMainFrame.Name = "CloseButtonMainFrame"
+	CloseButtonMainFrame.Parent = TitleLabel
+	CloseButtonMainFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	CloseButtonMainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	CloseButtonMainFrame.BorderSizePixel = 0
+	CloseButtonMainFrame.Position = UDim2.new(0.951333344, 0, 0.2, 0)
+	CloseButtonMainFrame.Size = UDim2.new(0, 15, 0, 15)
+	CloseButtonMainFrame.Font = Enum.Font.Arcade
+	CloseButtonMainFrame.Text = "X"
+	CloseButtonMainFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CloseButtonMainFrame.TextSize = 14.000
+
+	ReduceButtonMainFrame.Name = "ReduceButtonMainFrame"
+	ReduceButtonMainFrame.Parent = TitleLabel
+	ReduceButtonMainFrame.BackgroundColor3 = Color3.fromRGB(255, 183, 0)
+	ReduceButtonMainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	ReduceButtonMainFrame.BorderSizePixel = 0
+	ReduceButtonMainFrame.Position = UDim2.new(0.909333348, 0, 0.2, 0)
+	ReduceButtonMainFrame.Size = UDim2.new(0, 15, 0, 15)
+	ReduceButtonMainFrame.Font = Enum.Font.Arcade
+	ReduceButtonMainFrame.Text = "-"
+	ReduceButtonMainFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
+	ReduceButtonMainFrame.TextSize = 14.000
+
+	PlayerFrame.Name = "PlayerFrame"
+	PlayerFrame.Parent = MainContainer
+	PlayerFrame.Active = true
+	PlayerFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	PlayerFrame.BackgroundTransparency = 0.200
+	PlayerFrame.BorderColor3 = Color3.fromRGB(130, 203, 255)
+	PlayerFrame.BorderSizePixel = 0
+	PlayerFrame.ClipsDescendants = true
+	PlayerFrame.Position = UDim2.new(0.410371304, 0, 0.176687121, 0)
+	PlayerFrame.Selectable = true
+	PlayerFrame.Size = UDim2.new(0, 300, 0, 300)
+	PlayerFrame.Visible = true
+
+	PlayerListLabel.Name = "PlayerListLabel"
+	PlayerListLabel.Parent = PlayerFrame
+	PlayerListLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	PlayerListLabel.BackgroundTransparency = 0.100
+	PlayerListLabel.BorderSizePixel = 0
+	PlayerListLabel.Selectable = true
+	PlayerListLabel.Size = UDim2.new(1, 0, 0.100000001, 0)
+	PlayerListLabel.Font = Enum.Font.Arcade
+	PlayerListLabel.Text = "Player list"
+	PlayerListLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	PlayerListLabel.TextSize = 25.000
+
+	ContainerFrame.Name = "ContainerFrame"
+	ContainerFrame.Parent = PlayerFrame
+	ContainerFrame.Active = true
+	ContainerFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	ContainerFrame.BackgroundTransparency = 1.000
+	ContainerFrame.BorderSizePixel = 0
+	ContainerFrame.Position = UDim2.new(0.0250000004, 0, 0.100000001, 0)
+	ContainerFrame.Size = UDim2.new(0.949999988, 0, 0.800000012, 0)
+	ContainerFrame.ScrollBarThickness = 2
+
+	Layout_2.Name = "Layout"
+	Layout_2.Parent = ContainerFrame
+
+	SelectedPlayerLabel.Name = "SelectedPlayerLabel"
+	SelectedPlayerLabel.Parent = PlayerFrame
+	SelectedPlayerLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	SelectedPlayerLabel.BackgroundTransparency = 0.100
+	SelectedPlayerLabel.BorderSizePixel = 0
+	SelectedPlayerLabel.Position = UDim2.new(-0, 0, 0.899999976, 0)
+	SelectedPlayerLabel.Selectable = true
+	SelectedPlayerLabel.Size = UDim2.new(1, 0, 0.100000001, 0)
+	SelectedPlayerLabel.Font = Enum.Font.Arcade
+	SelectedPlayerLabel.Text = "Selected: Player"
+	SelectedPlayerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	SelectedPlayerLabel.TextSize = 15.000
+	SelectedPlayerLabel.TextWrapped = true
+
+	CloseButtonPlayerFrame.Name = "CloseButtonPlayerFrame"
+	CloseButtonPlayerFrame.Parent = PlayerListLabel
+	CloseButtonPlayerFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	CloseButtonPlayerFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	CloseButtonPlayerFrame.BorderSizePixel = 0
+	CloseButtonPlayerFrame.Position = UDim2.new(0.923333347, 0, 0.2, 0)
+	CloseButtonPlayerFrame.Size = UDim2.new(0, 15, 0, 15)
+	CloseButtonPlayerFrame.Font = Enum.Font.Arcade
+	CloseButtonPlayerFrame.Text = "X"
+	CloseButtonPlayerFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CloseButtonPlayerFrame.TextSize = 14.000
+
+	DebugFrame.Name = "DebugFrame"
+	DebugFrame.Parent = MainContainer
+	DebugFrame.Active = true
+	DebugFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	DebugFrame.BackgroundTransparency = 0.200
+	DebugFrame.BorderColor3 = Color3.fromRGB(130, 203, 255)
+	DebugFrame.BorderSizePixel = 0
+	DebugFrame.ClipsDescendants = true
+	DebugFrame.Position = UDim2.new(0.0755441561, 0, 0.576687098, 0)
+	DebugFrame.Selectable = true
+	DebugFrame.Size = UDim2.new(0, 500, 0, 300)
+	DebugFrame.Visible = false
+
+	DebugLabel.Name = "DebugLabel"
+	DebugLabel.Parent = DebugFrame
+	DebugLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	DebugLabel.BackgroundTransparency = 0.100
+	DebugLabel.BorderSizePixel = 0
+	DebugLabel.Selectable = true
+	DebugLabel.Size = UDim2.new(1, 0, 0.100000001, 0)
+	DebugLabel.Font = Enum.Font.Arcade
+	DebugLabel.Text = "Debug console"
+	DebugLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	DebugLabel.TextSize = 25.000
+
+	StringsFrame.Name = "StringsFrame"
+	StringsFrame.Parent = DebugFrame
+	StringsFrame.Active = true
+	StringsFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	StringsFrame.BackgroundTransparency = 1.000
+	StringsFrame.Position = UDim2.new(0, 0, 0.100000001, 0)
+	StringsFrame.Size = UDim2.new(1, 0, 0.899999976, 0)
+	StringsFrame.ScrollBarThickness = 2
+
+	Layout_3.Name = "Layout"
+	Layout_3.Parent = StringsFrame
+
+	CloseButtonDebugFrame.Name = "CloseButtonDebugFrame"
+	CloseButtonDebugFrame.Parent = DebugLabel
+	CloseButtonDebugFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	CloseButtonDebugFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	CloseButtonDebugFrame.BorderSizePixel = 0
+	CloseButtonDebugFrame.Position = UDim2.new(0.951333344, 0, 0.2, 0)
+	CloseButtonDebugFrame.Size = UDim2.new(0, 15, 0, 15)
+	CloseButtonDebugFrame.Font = Enum.Font.Arcade
+	CloseButtonDebugFrame.Text = "X"
+	CloseButtonDebugFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CloseButtonDebugFrame.TextSize = 14.000
+	
+	--functions
+	
+	--Gestione del drag dei frame
+	local dragFrame = nil;					--Indica il frame da spostare
+	local dragControl = false;				--Indica se la funzione di spostamento ha dato esito positivo
+	local mouseStartX = 0;					--Posizione di partenza del mouse X
+	local mouseStartY = 0;					--Posizione di partenza del mouse Y
+	local dragThread = nil;					--Thread di gestione del drag
+	
+	local function dragStart(i, gP)
+		if not gP and i.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragControl = true;
+			local mouse = game.Players.LocalPlayer:GetMouse();
+			mouseStartX = mouse.X;
+			mouseStartY = mouse.Y;
+			dragThread = coroutine.create(
+				function()
+					local mouse = game.Players.LocalPlayer:GetMouse();
+					local camera = game.Workspace.Camera;
+					while dragControl do						
+						if dragFrame then
+							dragFrame.Position = dragFrame.Position + UDim2.new((mouse.X - mouseStartX) / camera.ViewportSize.X, 0, (mouse.Y - mouseStartY) / camera.ViewportSize.Y, 0);
+							mouseStartX = mouse.X;
+							mouseStartY = mouse.Y;
+						end
+						
+						wait();
+					end
+				end
+			);
+			coroutine.resume(dragThread);
+		end
+	end
+	
+	local function dragStop(i, gP)
+		if not gP and i.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragControl = false;
+			dragFrame = nil;
+		end
+	end
+	
+	TitleLabel.InputBegan:Connect(
+		function(i, gP)
+			dragStart(i, gP);
+			if dragControl then
+				dragFrame = MainFrame;
+			end
+		end
+	);
+	
+	TitleLabel.InputEnded:Connect(dragStop);
+	
+	PlayerListLabel.InputBegan:Connect(
+		function(i, gP)
+			dragStart(i, gP);
+			if dragControl then
+				dragFrame = PlayerFrame;
+			end
+		end
+	);
+
+	PlayerListLabel.InputEnded:Connect(dragStop);
+	
+	DebugLabel.InputBegan:Connect(
+		function(i, gP)
+			dragStart(i, gP);
+			if dragControl then
+				dragFrame = DebugFrame;
+			end
+		end
+	);
+
+	DebugLabel.InputEnded:Connect(dragStop);
+	
+	--Gestione della chiusura delle finestre
+	CloseButtonPlayerFrame.MouseButton1Click:Connect(function() PlayerFrame.Visible = not PlayerFrame.Visible; end);
+	CloseButtonDebugFrame.MouseButton1Click:Connect(function() DebugFrame.Visible = not DebugFrame.Visible; end);
+	CloseButtonMainFrame.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible; end);
+	ReduceButtonMainFrame.MouseButton1Click:Connect(
+		function()   
+			if MainFrame.Visible then
+				if not MainFrame:GetAttribute("Reduced") then
+					local oldSize = MainFrame.Size;
+					MainFrame:SetAttribute("OldSize", oldSize);
+					MainFrame:SetAttribute("Reduced", true);
+					MainFrame.Size = UDim2.new(oldSize.Width, UDim.new(0, 30));
+					FunctionsFrame.Visible = false;
+				else
+					local oldSize = MainFrame:GetAttribute("OldSize");
+					MainFrame:SetAttribute("Reduced", false);
+					MainFrame.Size = oldSize;
+					FunctionsFrame.Visible = true;
+				end
+			end	
+		end
+	);
+end
+
+local functionCounterForOrder = 0;				--variabile usata per mantenere l'ordine nel layout  delle funzioni, NON CANCELLARE
+
+--[[
+Cambia la dimensione della canvas dello scrollFrame
+@param scrollFrame as ScrollFrame: Frame da ridimensionare
+]]--
+local function changeScrollFrameCanvasSize(scrollFrame)	
+	local children = scrollFrame:GetChildren();
+	for i, v in pairs(scrollFrame:GetChildren()) do
+		if v.ClassName ~= "UIListLayout" then
+			local size = v.Size;
+			scrollFrame.CanvasSize = UDim2.new(scrollFrame.CanvasSize.Width.Scale, 0, 0, #children * size.Height.Offset)
+			break;
+		end 
+	end
+end
+
+--[[
+Aggiunge un pulsante alla lista delle funzioni.
+@param buttonName as String: nome del pulsante
+@param buttonFunction as Function(button): funzione chiamata alla pressione del tasto
+@param buttonText as String: Testo visualizzato sul pulsante
+@param hasStatus as Boolean: Stato di attivazione del pulsante
+@return as Button: Pulsante realizzato
+]]--
+local function addFunctionButton(buttonName, buttonFunction, buttonText, hasStatus)
+	local functionEntry = Instance.new("TextButton")
+  
+  local realOrder = "";
+  local i = 0;
+  while i < functionCounterForOrder do
+    realOrder = realOrder .. "a";
+    i = i + 1;
+  end
+  
+	functionEntry.Name = realOrder .. buttonName
+	functionEntry.Text = buttonText
+	functionEntry.Parent = FunctionsFrame
+	functionEntry.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	functionEntry.BackgroundTransparency = 0.900
+	functionEntry.BorderSizePixel = 0
+	functionEntry.Size = UDim2.new(1, 0, 0, 30)
+	functionEntry.Font = Enum.Font.Arcade
+	functionEntry.TextColor3 = Color3.fromRGB(255, 255, 255)
+	functionEntry.TextSize = 20.000	
+	
+	functionEntry:SetAttribute("BaseText", buttonText);
+	
+	if hasStatus then
+		functionEntry:SetAttribute("HasStatus", true);
+		functionEntry:SetAttribute("Status", false);
+		functionEntry.Text = buttonText .. " [Disabled]";
+	else
+		functionEntry:SetAttribute("HasStatus", false);
+	end
+	
+	functionEntry.MouseButton1Click:Connect(
+		function()
+			if functionEntry:GetAttribute("HasStatus") then
+				local status = functionEntry:GetAttribute("Status");
+				status = not status;
+				if status then
+					functionEntry.Text = functionEntry:GetAttribute("BaseText") .. " [Enabled]";
+				else
+					functionEntry.Text = functionEntry:GetAttribute("BaseText") .. " [Disabled]";
+				end
+				functionEntry:SetAttribute("Status", status);
+			end
+			if buttonFunction then
+				buttonFunction(functionEntry);
+			end
+		end
+	);
+	
+	functionCounterForOrder = functionCounterForOrder + 1;
+	
+	changeScrollFrameCanvasSize(FunctionsFrame);
+	
+	return functionEntry;
+end
+
+--[[
+Aggiunge un giocatore alla lista dei giocatori
+@param playerName as String: Nome del giocatore da inserire
+@param targetChangeFunction as Function(playerName): Funzione chiamata alla pressione di un entry
+@param additionalString as String: Informaziona aggiuntiva da inserire nell'entry
+--]]
+local function addPlayerEntry(playerName, targetChangeFunction, additionalString)
+	local playerEntry = Instance.new("TextButton")
+	
+	playerEntry.Name = playerName
+	playerEntry.Text = playerName .. " [" .. additionalString .. "]";
+	playerEntry.Parent = ContainerFrame
+	playerEntry.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	playerEntry.BackgroundTransparency = 0.900
+	playerEntry.BorderColor3 = Color3.fromRGB(94, 150, 255)
+	playerEntry.BorderSizePixel = 0
+	playerEntry.Position = UDim2.new(0.0789473653, 0, 0.0777777806, 0)
+	playerEntry.Size = UDim2.new(1, 0, 0, 20)
+	playerEntry.Font = Enum.Font.Arcade
+	playerEntry.TextColor3 = Color3.fromRGB(255, 255, 255)
+	playerEntry.TextSize = 15.000
+	playerEntry.TextXAlignment = Enum.TextXAlignment.Left
+	
+	playerEntry.MouseButton1Click:Connect(
+		function()
+			if targetChangeFunction then
+				targetChangeFunction(playerEntry.Name);
+			end
+		end
+	);
+	
+	changeScrollFrameCanvasSize(ContainerFrame);
+end
+
+--[[
+Scrive un informazione nel debug
+@param text as String: Testo da visualizzare
+]]--
+local function writeDebug(text)
+	local debugEntry = Instance.new("TextLabel")
+	
+	debugEntry.Name = "DebugEntry"
+	debugEntry.Text = os.date("%X", os.time()) .. "-> " .. text;
+	debugEntry.Parent = StringsFrame
+	debugEntry.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	debugEntry.BackgroundTransparency = 0.900
+	debugEntry.BorderSizePixel = 0
+	debugEntry.Size = UDim2.new(1, 0, 0, 30)
+	debugEntry.Font = Enum.Font.Arcade
+	debugEntry.TextColor3 = Color3.fromRGB(255, 255, 255)
+	debugEntry.TextSize = 15.000
+	debugEntry.TextXAlignment = Enum.TextXAlignment.Left
+	
+	StringsFrame.CanvasPosition = Vector2.new(0, StringsFrame.CanvasSize.Height.Offset - 30);
+	
+	changeScrollFrameCanvasSize(StringsFrame);
+end
+
+--Base information: don't delete here.
+
+local mainThreadLoopFlag = true;				--Questo flag mantiene in loop i thread principali dello script, non cancellare
+
+local targetPlayer = nil;						--Giocatore target selezionato
+local function setTargetPlayer(playerName)
+	targetPlayer = playerName;
+	SelectedPlayerLabel.Text = "Selected: " .. playerName;
+end
+
+local playerFetchThread = coroutine.create(
+	function()
+	 writeDebug("PlayerFetchThread started!");
+		while mainThreadLoopFlag do
+			for i, v in pairs(ContainerFrame:GetChildren()) do
+				if v.ClassName == "TextButton" then
+					v:Destroy();
+				end
+			end
+			for i, v in pairs(game.Players:GetChildren()) do
+        pcall(
+          function()
+            local level = v.leaderstats.Level.Value;
+            local reputation = v.leaderstats.Reputation.Value;
             
-            ChatLog.Parent = ChatFrame
-            ChatLog.BackgroundTransparency = 1
-            ChatLog.Size = UDim2.new(1, 0, 1, 0)
-            ChatLog.Font = Enum.Font.Code
-            ChatLog.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ChatLog.TextSize = 14
-            ChatLog.Text = "Chat Logs\n"
+            addPlayerEntry(v.Name, setTargetPlayer, "lv: " .. level .. ", rep: " .. reputation);
+          end
+        );
+			end
+			
+			wait(0.5);
+		end
+	end
+);
+coroutine.resume(playerFetchThread);
+
+--
+addFunctionButton(
+	"ShowPlayerListButton", 
+	function()
+		if not PlayerFrame.Visible then
+			PlayerFrame.Visible = true;
+		end	
+	end,
+	"Show player window",
+	false
+);
+
+addFunctionButton(
+	"ShowDebugButton", 
+	function()
+		if not DebugFrame.Visible then
+			DebugFrame.Visible = true;
+		end	
+	end,
+	"Show debug window",
+	false
+);
+
+--Servizio della tastiera
+local functionTable = {};
+
+--[[
+Aggiunge una funzione da eseguire quando viene premuto un tasto
+@param keyCode as Enum.KeyCode: Codice da associare alla funzione
+@param keyFunction as Function(status): Funzione chiamata quando il tasto e premuto o rilasciato
+]]--
+local function addKeyFunction(keyCode, keyFunction)
+	if keyFunction then
+		functionTable[keyCode] = keyFunction;
+	end
+end
+
+servizioTastiera.InputBegan:Connect(
+	function (i, gP)
+		if not gP then
+			if functionTable[i.KeyCode] then
+				functionTable[i.KeyCode](true);
+			end
+		end
+	end
+)
+
+servizioTastiera.InputEnded:Connect(
+	function (i, gP)
+		if not gP then
+			if functionTable[i.KeyCode] then
+				functionTable[i.KeyCode](false);
+			end
+		end
+	end
+)
+-------------------------
+
+--Add your code here
+
+--BaseData
+local function segnalinoVariabili()end;       --Funzioni per l'ide in modo da trasportarmi facilmente alle variabili dello script
+
+local teleportDistance = 8;                   --Variabile che contiene la distanza del teletrasporto
+local speed = 15;                             --VelocitÃ  di volo posseduta
+local utentiBloccatiTelecinesi = {};          --Contiene la lista di tutti i giocatori che sono stati bloccati dalla telecinesi
+
+local modalitaTrasportoBloccati = 0;          --0 -> sposta solo il target, 1 -> sposta tutti i bloccati, 2 -> sposta tutti i bloccati in cerchio, 3 -> attacca al target 
+
+local flyStatus = false;                      --Tiene traccia del fatto che sia stato attivata o meno la modalitÃ  di volo
+local flyAnimator = nil;                      --Animator creato quando si avvia l'animazione del volo
+
+local directionTable = {
+  [Enum.KeyCode.W] = false,
+  [Enum.KeyCode.S] = false,
+  [Enum.KeyCode.A] = false,
+  [Enum.KeyCode.D] = false,
+  [Enum.KeyCode.Space] = false,
+  [Enum.KeyCode.LeftControl] = false,
+};                                            --Tabella di direzione per i movimenti aggiuntivi aggiunti dallo script
+----------
+
+--BaseFunctions
+
+local function distruggiSessione()
+  mainThreadLoopFlag = false;
+  MainContainer:Destroy();
+  Script:Destroy();
+end
+CloseButtonMainFrame.MouseButton1Click:Connect(function() distruggiSessione(); end);
+
+--[[
+Controlla se il character dell'utente passato è bloccato oppure no
+@param characterUtente as Model: Modello del giocatore da controllare
+@return as Boolean: Restituisce true se l'utente è bloccato, altrimenti restituisce false
+]]--
+local function isUtenteBloccato(characterUtente)
+  local esito = false;
+  
+  for i, v in pairs(utentiBloccatiTelecinesi) do
+    if v == characterUtente then
+      esito = true;
+      break;
+    end
+  end
+  
+  return esito;
+end
+
+--[[
+Rimuove se possibile il character dell'utente bloccato
+@param characterUtente as Model: Modello del giocatore da rimuovere
+]]--
+local function removeUtenteBloccato(characterUtente)
+  for i, v in pairs(utentiBloccatiTelecinesi) do
+    if v == characterUtente then
+      table.remove(utentiBloccatiTelecinesi, i);
+      break;
+    end
+  end
+end
+
+--[[
+Esegue lo switch della camera e restituisce il risultato
+@param playerName as String: Nome del giocatore su cui spostare la camera
+@return as Boolean Restituisce true se lo switch ha avuto successo
+]]--
+local function switchCamera(playerName)
+  local esito = false;
+  
+  local camera = game.Workspace.Camera;
+  if playerName ~= nil then
+    local player = game.Players:FindFirstChild(playerName);
+    if player ~= nil then
+      local playerCharacter = player.Character;
+      if playerCharacter ~= nil and playerCharacter:FindFirstChild("Humanoid") ~= nil then
+        camera.CameraSubject = playerCharacter.Humanoid;
+        esito = true;
+      end
+    end
+  end
+  
+  return esito;
+end
+
+--[[
+Trasporta il giocatore locale dal target
+@param teleportDistance as Float: Distanza di teletrasporto
+]]--
+local function teleport(teleportDistance)
+  if targetPlayer and targetPlayer ~= "" then
+    local target = game.Players:FindFirstChild(targetPlayer);
     
-            -- Update chat log with real-time messages
-            game:GetService("Players").PlayerAdded:Connect(function(player)
-                player.Chatted:Connect(function(message)
-                    ChatLog.Text = ChatLog.Text .. player.Name .. ": " .. message .. "\n"
-                end)
-            end)
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+      local targetHumanoidRP = target.Character.HumanoidRootPart;
+      local localCharacter = game.Players.LocalPlayer.Character;
+      
+      if localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
+        localCharacter.HumanoidRootPart.CFrame = targetHumanoidRP.CFrame * CFrame.new(0, 0, teleportDistance); 
+      end
+    
+    end
+  end
+end
+
+--[[
+Fa tirare al personaggio un pugno
+@param comboCounter as Integer: animazione di combattimento da eseguire
+@return as Integer: Restituisce il nuovo valore del comboCounter
+]]--
+local function punch(comboCounter)
+  local eventoPugno = game:GetService("ReplicatedStorage").Events.Punch;
+  local ritardoPugno = { 0.1, 0.12, 0.15, 0.24, 0.18 };
+
+  eventoPugno:FireServer(0, ritardoPugno[comboCounter], comboCounter);
+  wait(ritardoPugno[comboCounter]);
+  
+  comboCounter = comboCounter + 1;
+  if comboCounter > 5 then
+    comboCounter = 1;
+  end
+  
+  return comboCounter;
+end
+
+--[[
+Scollega il corpo dalla root part del giocatore
+]]--
+local function removeBody()
+	local character = g;
+	
+	if game.Players.LocalPlayer.Character then
+		local lT = game.Players.LocalPlayer.Character:FindFirstChild("LowerTorso");
+		
+		if lT and lT:FindFirstChild("Root") then
+			lT.Root:Destroy();
+      writeDebug("Body removed");
+		end
+
+  end
+end
+
+--[[
+Avvia l'animazione di volo e restituisce l'animation trak
+@return as AnimationTrak: Restituisce l'animation trak generato, altrimenti nil in caso di problemi
+]]--
+local function startFlyAnimation()
+  local esito = nil;
+  
+  local animation = game:GetService("ReplicatedStorage").Animations.flyLoop;
+  local character = game.Players.LocalPlayer.Character;
+  
+  if character and character:FindFirstChild("Humanoid") then
+    local animator = character.Humanoid.Animator;
+    local animationTrak = animator:LoadAnimation(animation);
+    
+    if animationTrak then
+      animationTrak.Looped = false;
+      animationTrak:Play(0.1, 1, 0);
+      esito = animationTrak;
+    end
+    
+  end
+  
+  return esito;
+end
+
+--[[
+Fa crashare completamente il server
+]]--
+local function crashServerFunction()
+  game:GetService("ReplicatedStorage").Effects.Shield.Name = "Shields";
+  local evento = game:GetService("ReplicatedStorage").Events.ToggleBlocking;
+  
+  writeDebug("Server will crash in 5 seconds");
+  wait(1);
+  writeDebug("4 seconds")
+  wait(1);
+  writeDebug("3 seconds")
+  wait(1);
+  writeDebug("2 seconds")
+  wait(1);
+  writeDebug("1 second")
+  wait(1);
+  writeDebug("0 seconds")
+  
+  local i = 0; 
+  while i < 20000 do
+    evento:FireServer(true);
+    i = i + 1;
+  end
+
+  evento:FireServer(false);
+  writeDebug("Done!");
+
+end
+
+--[[
+Funzione da avviare come thread per implementare la funzionalita di volo
+]]--
+local function funzioneThreadVolo()
+    writeDebug("FlyThread started");
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart;
+    local humanoid = game.Players.LocalPlayer.Character.Humanoid;
+    while flyStatus do
+      if not hrp:FindFirstChild("bp") then
+        --Inserisce le componenti di volo
+        local bp = Instance.new("BodyPosition", hrp);
+        bp.Name = "bp";
+        bp.MaxForce = Vector3.new(1000000, 1000000, 1000000);
+        bp.Position = hrp.Position;
+        bp.P = 1000000;
+      end
+      
+      if not hrp:FindFirstChild("br") then
+        --Inserisce le componenti di volo
+        local br = Instance.new("BodyGyro", hrp);
+        br.Name = "br";
+        br.D = 100;
+        br.P = 1000;
+        br.MaxTorque = Vector3.new(1000000, 1000000, 1000000);
+      end
+      
+      local bp = hrp.bp;
+      local br = hrp.br;
+      local cameraCFrame = game.Workspace.Camera.CFrame;
+      
+      --Orienta il giocatore
+      humanoid.PlatformStand = true;
+      br.CFrame = cameraCFrame;
+      
+      --Controlla lo stato dei comandi
+      if directionTable[Enum.KeyCode.W] then
+        bp.Position = bp.Position + cameraCFrame.LookVector * speed;
+      end
+      if directionTable[Enum.KeyCode.S] then
+        bp.Position = bp.Position - cameraCFrame.LookVector * speed;
+      end
+      if directionTable[Enum.KeyCode.D] then
+        bp.Position = bp.Position + cameraCFrame.RightVector * speed;
+      end
+      if directionTable[Enum.KeyCode.A] then
+        bp.Position = bp.Position - cameraCFrame.RightVector * speed;
+      end
+      if directionTable[Enum.KeyCode.Space] then
+        bp.Position = bp.Position + cameraCFrame.UpVector * speed;
+      end
+      if directionTable[Enum.KeyCode.LeftControl] then
+        bp.Position = bp.Position - cameraCFrame.UpVector * speed;
+      end
+        
+      wait();
+    end
+    
+    writeDebug("FlyThread stopped");
+    hrp = game.Players.LocalPlayer.Character.HumanoidRootPart;
+    humanoid = game.Players.LocalPlayer.Character.Humanoid;
+    --Elimina le caratteristiche del giocatore per il volo
+    humanoid.PlatformStand = false;
+    if hrp:FindFirstChild("bp") then
+      hrp.bp:Destroy();
+    end
+    if hrp:FindFirstChild("br") then
+      hrp.br:Destroy();
+    end
+    if flyAnimator then
+      flyAnimator:Stop();
+      flyAnimator = nil;
+      writeDebug("FlyThread: animation stopped");
+    end
+end
+
+--[[
+Restituisce i giocatori vicini al player
+@param maxDistance as Float: Distanza massima da accettare
+@return as table: Lista dei nomi dei giocatori vicini
+]]--
+local function getNearPlayer(maxDistance)
+  local esito = {};
+  
+  local player = game.Players.LocalPlayer;
+  if player and player.Character then
+    local playerLocation = player.Character.HumanoidRootPart.Position;
+    for i, v in pairs(game.Players:GetChildren()) do
+      if v.Character then
+        local location = v.Character.HumanoidRootPart.Position;
+        if (location - playerLocation).Magnitude <= maxDistance then
+          table.insert(esito, v.Character);
         end
-    end)
+      end
+    end
+  end
+  
+  return esito;
+end
+
+--[[
+Catturiamo un giocaotre usando un lookVector
+@return as Model: Restituisce il character del giocatore catturato
+]]--
+local function catturaTelecinesi(lookVector)
+  local esito = nil;
+  
+  local evento = game:GetService("ReplicatedStorage").Events.ToggleTelekinesis;
+  local parteTelecinesi = evento:InvokeServer(lookVector, true);
+  if parteTelecinesi then
+    if game.Players:FindFirstChild(parteTelecinesi.Name) then
+      if not isUtenteBloccato(parteTelecinesi) then
+        table.insert(utentiBloccatiTelecinesi, parteTelecinesi);
+        evento:InvokeServer(lookVector, false, nil);
+        esito = parteTelecinesi;
+        writeDebug("Captured " .. esito.Name);
+      end
+    else
+      evento:InvokeServer(lookVector, false, parteTelecinesi);
+    end
+  end
+
+  return esito;
+end
+
+--[[
+Esegue un rilascio del character indicato
+]]--
+local function rilascioTelecinesi(character)
+  local evento = game:GetService("ReplicatedStorage").Events.ToggleTelekinesis;
+  evento:InvokeServer(game.Workspace.Camera.CFrame.LookVector, false, character);
+  if isUtenteBloccato(character) then
+    removeUtenteBloccato(character);
+  end
+  writeDebug("Released " .. character.Name);
+end
+
+--[[
+Sposta il giocatore selezionato con la telecinesi
+@param position as Vector3: Posizione di destinazione del giocatore
+@param playerName as String: Nome del giocatore da spostare
+]]--
+local function movePlayerWithTelekinesis(position, playerName)
+  if position and playerName then
+    --Qua potrebbero verificarsi eccezzioni quando si muove il giocatore e questo muore
+    pcall(
+      function()
+        local player = game.Players:FindFirstChild(playerName);
+        if player and player.Character and isUtenteBloccato(player.Character) then
+          player.Character.HumanoidRootPart.telekinesisPosition.Position = position;
+        end
+      end
+    )
+  end
+end
+
+--[[
+Esegue il comando di telecinesi sul singolo giocatore inquadrato dalla telecamera
+@param cattura as Boolean: Se impostato su true la funzione tenta di catturare l'utente, altrimenti rilascia il giocaotore segnalato dal nome
+@param playerNameToRelease: Nome del giocatore da rilasciare se bloccato
+]]--
+local function telecinesiSingola(cattura, playerNameToRelease)
+  if cattura then
+    local character = catturaTelecinesi(game.Workspace.Camera.CFrame.LookVector);
+    if character and modalitaTrasportoBloccati ~= 3 then
+      SelectedPlayerLabel.Text = "Selected: " .. character.Name;
+      targetPlayer = character.Name
+    end
+  else
+    if playerNameToRelease and game.Players:FindFirstChild(playerNameToRelease) then
+      local player = game.Players:FindFirstChild(playerNameToRelease);
+      if player.Character then
+        rilascioTelecinesi(player.Character);
+      end
+    end
+  end
+end
+
+--[[
+Esegue un meccanismo di telecinesi multipla catturando i giocatori vicini
+]]--
+local function telecinesiMultipla()
+  local giocatoriVicini = getNearPlayer(30);
+  local characterPosition = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Position;
+  for i, v in pairs(giocatoriVicini) do
+    local hrp = v.HumanoidRootPart;
+    local cLookFrame = CFrame.new(characterPosition , hrp.CFrame.Position);
+    catturaTelecinesi(cLookFrame.LookVector);
+  end
+end
+
+--[[
+Rilascia tutti i giocatori bloccati dalla telecinesi
+]]--
+local function rilascioTotale()
+  local modelli = {};
+  for i, v in pairs(utentiBloccatiTelecinesi) do
+    table.insert(modelli, v);
+  end
+  
+  for i, v in pairs(modelli) do
+    rilascioTelecinesi(v);
+  end
+  utentiBloccatiTelecinesi = {};
+  
+  writeDebug("Each locked player released");
+end
+
+--[[
+Uccide tutti i giocatori bloccati dalla telecinesi
+]]--
+local function killAll()
+  for i, v in pairs(utentiBloccatiTelecinesi) do
+    pcall(
+      function() 
+        if game.Players:FindFirstChild(v.Name) then
+          v.Head.Neck:Destroy(); 
+        end
+      end
+    );
+    wait(0.1);
+  end
+  
+  writeDebug("Each locked player killed");
+  rilascioTotale();
+end
+
+--[[
+Da i super poteri a tutti gli utenti bloccati
+]]--
+local function giveSuperPower()
+  writeDebug("Super powered list:");
+  for i, v in pairs(utentiBloccatiTelecinesi) do
+    writeDebug(v.Name);
+    pcall(
+      function()
+        writeDebug("start");
+        v.Humanoid.JumpPower = 250;
+        v.Humanoid.WalkSpeed = 200;
+        v.Humanoid.PlatformStand = false;
+        v.HumanoidRootPart.telekinesisPosition:Destroy();
+        v.HumanoidRootPart.telekinesisGyro:Destroy();
+        writeDebug(v.Name .. " has superpowers");
+      end
+    );
+  end
+  writeDebug("-----------------------");
+end
+
+addFunctionButton(
+  "ControllTarget",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("ControlTarget started");
+            while button:GetAttribute("Status") do
+              pcall(
+                function()
+                  local characterModel = game.Players:FindFirstChild(targetPlayer).Character;
+                  if characterModel.HumanoidRootPart:FindFirstChild("telekinesisPosition") then
+                    characterModel.Humanoid.JumpPower = 200;
+                    characterModel.Humanoid.WalkSpeed = 200;
+                    characterModel.Humanoid.PlatformStand = false;
+                    characterModel.HumanoidRootPart.telekinesisPosition:Destroy();
+                    characterModel.HumanoidRootPart.telekinesisGyro:Destroy();
+                  end
+                  
+                  switchCamera(targetPlayer);
+                  
+                  local yDir = 0;
+                  local xDir = 0;
+                  if directionTable[Enum.KeyCode.W] then
+                    yDir = yDir - 1;
+                  end
+                  
+                  if directionTable[Enum.KeyCode.S] then
+                    yDir = yDir + 1;
+                  end
+                  
+                  if directionTable[Enum.KeyCode.A] then
+                    xDir = xDir - 1;
+                  end
+                  
+                  if directionTable[Enum.KeyCode.D] then
+                    xDir = xDir + 1;
+                  end
+                  
+                  if directionTable[Enum.KeyCode.Space] then
+                    characterModel.Humanoid.Jump = true;
+                  else
+                    characterModel.Humanoid.Jump = false;
+                  end
+                  
+                  game.Players.LocalPlayer.Character.Humanoid.PlatformStand = true;
+                  characterModel.Humanoid:Move(Vector3.new(xDir, 0, yDir), true);
+                end
+              );
+              
+              wait();
+            end
+            switchCamera(game.Players.LocalPlayer.Name);
+            game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false;
+            writeDebug("ControlTarget stopped");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "Control the target",
+  true
+)
+
+addFunctionButton(
+  "TPTargetOrbs",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("Exp orbs cycle started");
+            while button:GetAttribute("Status") do
+              pcall(
+                function()
+                  local characterModel = game.Players:FindFirstChild(targetPlayer).Character;
+                  local characterHRP = characterModel.HumanoidRootPart;
+                  local characterTelekinesis = characterHRP.telekinesisPosition;
+                  
+                  for i, v in pairs(game:GetService("Workspace").ExperienceOrbs:GetChildren()) do
+                    characterTelekinesis.Position = v.CFrame.Position;
+                    characterHRP.CFrame = v.CFrame;
+                    
+                    wait(0.1);
+                  end
+                end
+              );
+              
+              wait();
+            end
+            writeDebug("Exp orbs cycle stopped");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "TP target to orbs",
+  true
+)
+
+addFunctionButton(
+  "TPTargetOrbs2",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("Exp orbs cycle 2 started");
+            while button:GetAttribute("Status") do
+              pcall(
+                function()
+                  local character = game.Players:FindFirstChild(targetPlayer).Character;
+                  for i, v in pairs(game:GetService("Workspace").ExperienceOrbs:GetChildren()) do
+                      local hrp = character.HumanoidRootPart;
+                      v.CFrame = hrp.CFrame;
+                  end
+                end
+              );
+              
+              wait();
+            end
+            writeDebug("Exp orbs cycle 2 stopped");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "TP orbs to target",
+  true
+)
+
+addFunctionButton(
+  "TPTargetOrbs3",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("Exp orbs cycle 3 started");
+            while button:GetAttribute("Status") do
+              pcall(
+                function()
+                  local character = game.Players:FindFirstChild(targetPlayer).Character;
+                  local orb = game:GetService("Workspace").ExperienceOrbs:FindFirstChild("experienceOrb");
+                  local hrp = character.HumanoidRootPart;
+                  orb.CFrame = hrp.CFrame;
+                end
+              );
+              
+              wait(0.2);
+            end
+            writeDebug("Exp orbs cycle 3 stopped");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "TP orbs to target with refield",
+  true
+)
+
+addFunctionButton(
+  "TPBlockedOrbs",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("Exp orbs cycle 4 started");
+            while button:GetAttribute("Status") do
+              pcall(
+                function()
+                  for i, v in pairs(utentiBloccatiTelecinesi) do
+                    local character = v;
+                    local orb = game:GetService("Workspace").ExperienceOrbs:FindFirstChild("experienceOrb");
+                    local hrp = character.HumanoidRootPart;
+                    orb.CFrame = hrp.CFrame;
+                    wait(0.2);
+                  end
+                end
+              );
+              
+              wait();
+            end
+            writeDebug("Exp orbs cycle 4 stopped");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "TP orbs to blocked players",
+  true
+)
+
+----------------
+
+addFunctionButton(
+  "HideTitle",
+  function (button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("HideTitleThread started");
+            while button:GetAttribute("Status") do
+              if game.Players.LocalPlayer.Character then
+                local rP = game.Players.LocalPlayer.Character.HumanoidRootPart;
+                if rP and rP:FindFirstChild("titleGui") then
+                  rP.titleGui:Destroy();
+                end
+              end
+              wait();
+            end
+            writeDebug("HideTitleThread stopped");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "Hide title",
+  true
+);
+
+addFunctionButton(
+  "ChangeTelekinesisCarry",
+  function(button)
+    modalitaTrasportoBloccati = modalitaTrasportoBloccati + 1;
+    if modalitaTrasportoBloccati > 3 then
+      modalitaTrasportoBloccati = 0;
+    end
+    local messaggio = "";
+    if modalitaTrasportoBloccati == 0 then
+      messaggio = "move target";
+    elseif modalitaTrasportoBloccati == 1 then
+      messaggio = "move each locked";
+    elseif modalitaTrasportoBloccati == 2 then
+      messaggio = "move each around";
+    else
+      messaggio = "attach to target";
+    end
+    button.Text = button:GetAttribute("BaseText") .. " [" .. messaggio .. "]";
+  end,
+  "Telekinesis carry mode",
+  false
+);
+
+addFunctionButton(
+  "SpyTarget",
+  function (button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        switchCamera(targetPlayer);
+      else
+        switchCamera(game.Players.LocalPlayer.Name);
+      end
+    end
+  end,
+  "Spy target",
+  true
+);
+
+addFunctionButton(
+  "InfiniteEnergy",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        coroutine.resume(coroutine.create(function()
+          writeDebug("InfEnergyThread started")
+          
+          -- Infinite energy loop
+          while button:GetAttribute("Status") do
+            getrenv()._G.energy = math.huge  -- Set energy to infinity
+            button.Text = button:GetAttribute("BaseText") .. " [∞]"
+            wait(0.1)  -- Wait a short period before looping again
+          end
+          
+          writeDebug("InfEnergyThread stopped")
+        end))
+      end
+    end
+  end,
+  "Enable infinite energy",
+  true
+);
+
+addFunctionButton(
+  "SafeFromTelekinesis",
+  function(button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        coroutine.resume(coroutine.create(
+          function()
+            while(true) do
+              local evento = game:GetService("ReplicatedStorage").Events.ToggleTelekinesis;
+              if game.Players.LocalPlayer.Character then
+                evento:InvokeServer(game.Workspace.Camera.CFrame.LookVector, false, game.Players.LocalPlayer.Character); 
+              end
+              wait();
+            end
+          end
+        ));
+      end
+    end
+  end,
+  "Safe from telekinesis",
+  true
+);
+
+addFunctionButton(
+  "StartFly",
+  function(button)
+    --flyAnimator = startFlyAnimation();
+    if button:GetAttribute("HasStatus") then
+      flyStatus = button:GetAttribute("Status");
+      if flyStatus then
+        coroutine.resume(coroutine.create(funzioneThreadVolo));
+      end
+    end
+  end,
+  "Start fly",
+  true
+);
+
+addFunctionButton(
+  "IncrementDistance",
+  function (button)
+    teleportDistance = teleportDistance + 1;
+    button.Text = button:GetAttribute("BaseText") .. " [" .. teleportDistance .. "]";
+  end,
+  "Increment teleport distance",
+  false
+);
+
+addFunctionButton(
+  "DecrementDistance",
+  function (button)
+    teleportDistance = teleportDistance - 1;
+    if teleportDistance < 0 then
+      teleportDistance = 0;
+    end
+    button.Text = button:GetAttribute("BaseText") .. " [" .. teleportDistance .. "]";
+  end,
+  "Decrement teleport distance",
+  false
+);
+
+addFunctionButton(
+  "Teleport",
+  function (button)
+      teleport(teleportDistance);
+  end,
+  "Teleport",
+  false
+);
+
+addFunctionButton(
+  "GiveSuperPower",
+  giveSuperPower,
+  "Give superpower",
+  false
+);
+
+addFunctionButton(
+  "IncrementSpeed",
+  function (button)
+    speed = speed + 1;
+    button.Text = button:GetAttribute("BaseText") .. " [" .. speed .. "]";
+  end,
+  "Increment fly speed",
+  false
+);
+
+addFunctionButton(
+  "DecrementSpeed",
+  function (button)
+    speed = speed - 1;
+    if speed < 0 then
+      speed = 0;
+    end
+    button.Text = button:GetAttribute("BaseText") .. " [" .. speed .. "]";
+  end,
+  "Decrement fly speed",
+  false
+);
+
+addFunctionButton(
+  "FireEyes",
+  function (button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("FireEyesThread started");
+            local event = game:GetService("ReplicatedStorage").Events.ToggleLaserVision;
+            local part = event:InvokeServer(true);
+            while button:GetAttribute("Status") and part and targetPlayer do
+              local target = game.Players:FindFirstChild(targetPlayer);
+              if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                part.Position = target.Character.HumanoidRootPart.Position;
+              end
+              wait();
+            end
+            event:InvokeServer(false);
+            writeDebug("FireEyesThread ended");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "Fire eyes target",
+  true
+);
+
+addFunctionButton(
+  "FireEyesLocked",
+  function (button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("FireEyesLockedThread started");
+            local event = game:GetService("ReplicatedStorage").Events.ToggleLaserVision;
+            local part = event:InvokeServer(true);
+            while button:GetAttribute("Status") and part do
+              for i, v in pairs(utentiBloccatiTelecinesi) do
+                part.Position = v.Character.HumanoidRootPart.Position;
+                wait(0.1);
+              end
+              wait();
+            end
+            event:InvokeServer(false);
+            writeDebug("FireEyesLockedThread ended");
+          end
+        ));
+        
+      end
+    end
+  end,
+  "Fire locked players",
+  true
+);
+
+addFunctionButton(
+  "RemoveBody",
+  function (button)
+    removeBody();
+  end,
+  "Remove body [irreversible]",
+  false
+);
+
+
+addFunctionButton(
+  "SplitBody",
+  function (button)
+    pcall(
+      function()
+        game:GetService("Players").LocalPlayer.Character.UpperTorso.Waist:Destroy();
+      end
+    );
+  end,
+  "Split body [irreversible]",
+  false
+);
+
+addFunctionButton(
+  "DisableTelekinesis",
+  function (button)
+    if button:GetAttribute("HasStatus") then
+      if button:GetAttribute("Status") then
+        coroutine.resume(coroutine.create(
+          function()
+            writeDebug("DisableTelekinesisThread started");
+            while button:GetAttribute("Status") do
+              local evento = game:GetService("ReplicatedStorage").Events.ToggleTelekinesis;
+              
+              for i, v in pairs(game.Players:GetChildren()) do
+                if v.Character and not isUtenteBloccato(v.Character) then
+                  coroutine.resume(coroutine.create(
+                    function() 
+                      evento:InvokeServer(game.Workspace.Camera.CFrame.LookVector, false, v.Character); 
+                    end
+                  ));
+                end
+              end
+              
+              wait(0.1);
+            end
+            writeDebug("DisableTelekinesisThread stopped");
+          end
+        ));
+      end
+    end
+  end,
+  "Disable telekinesis",
+  true
+);
+
+addFunctionButton(
+  "CrashServer",
+  function (button)
+    if not DebugFrame.Visible then
+      DebugFrame.Visible = true;
+    end
+    crashServerFunction();
+  end,
+  "Crash server, [Open the debug window]",
+  false
+);
+
+--KeyFunctions
+
+local function keyFunctionSegnalino()end;
+
+addKeyFunction(
+  Enum.KeyCode.K,
+  function(status)
+    if not status then
+      teleport(teleportDistance);
+    end
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.P, 
+  function(status)
+    if not status then
+      telecinesiSingola(true);
+    end
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.U, 
+  function(status)
+    if not status then
+      telecinesiMultipla();
+    end
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.L, 
+  function(status)
+    if not status then
+      telecinesiSingola(false, targetPlayer);
+    end
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.J, 
+  function(status)
+    if not status then
+      rilascioTotale();
+    end
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.H, 
+  function(status)
+    if not status then
+      killAll();
+    end
+  end
+);
+
+--Controllo pressione tasti
+local function controlloPressioneTastiSegnalino()end;
+  
+addKeyFunction(
+  Enum.KeyCode.W,
+  function(status)
+    directionTable[Enum.KeyCode.W] = status;
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.S,
+  function(status)
+    directionTable[Enum.KeyCode.S] = status;
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.A,
+  function(status)
+    directionTable[Enum.KeyCode.A] = status;
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.D,
+  function(status)
+    directionTable[Enum.KeyCode.D] = status;
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.Space,
+  function(status)
+    directionTable[Enum.KeyCode.Space] = status;
+  end
+);
+
+addKeyFunction(
+  Enum.KeyCode.LeftControl,
+  function(status)
+    directionTable[Enum.KeyCode.LeftControl] = status;
+  end
+);
+
+--Routine di script
+local function routineScriptSegnalino()end;
+
+local threadControllo = coroutine.create(
+  function()
+    writeDebug("ControlThread started");
+    while mainThreadLoopFlag do
+      if not MainFrame.Visible then
+        MainFrame.Visible = true;
+      end
+      wait(0.2);
+    end
+  end
+);
+coroutine.resume(threadControllo);
+
+local threadTelekinesis = coroutine.create(
+  function()
+    writeDebug("TelekinesisThread started");
+    local angoloRotazione = 90;          --Angolo di rotazione per posizionare i giocatori
+    while mainThreadLoopFlag do
+      --Per ora il pcall ci toglie molti problemi, ma in futuro rivedrÃ² la parte di controllo della telecinesi
+      pcall(
+        function()
+          local localCharacter = game.Players.LocalPlayer.Character;
+      
+          if localCharacter then
+            if modalitaTrasportoBloccati == 0 then
+              movePlayerWithTelekinesis((localCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -teleportDistance)).Position, targetPlayer);
+            end
+            if modalitaTrasportoBloccati == 1 then
+              angoloRotazione = 90;
+              for i, v in pairs(utentiBloccatiTelecinesi) do
+                local angle = angoloRotazione + (i * 10);
+                local c = math.cos(angle);
+                local s = math.sin(angle);
+                local position = (localCharacter.HumanoidRootPart.CFrame * CFrame.new(teleportDistance * c, 0, teleportDistance * s)).Position;
+                movePlayerWithTelekinesis(position, v.Name);
+              end
+            end
+            if modalitaTrasportoBloccati == 2 then
+              angoloRotazione = angoloRotazione + 0.05;
+              for i, v in pairs(utentiBloccatiTelecinesi) do
+                local angle = angoloRotazione + (i * 10);
+                local c = math.cos(angle);
+                local s = math.sin(angle);
+                local position = (localCharacter.HumanoidRootPart.CFrame * CFrame.new(teleportDistance * c, 6, teleportDistance * s)).Position;
+                movePlayerWithTelekinesis(position, v.Name);
+              end
+            end
+            if modalitaTrasportoBloccati == 3 and targetPlayer and game.Players:FindFirstChild(targetPlayer) then
+              local player = game.Players:FindFirstChild(targetPlayer);
+              if player.Character and not isUtenteBloccato(player.Character) then
+                angoloRotazione = angoloRotazione + 0.05;
+                for i, v in pairs(utentiBloccatiTelecinesi) do
+                  local angle = angoloRotazione + (i * 10);
+                  local c = math.cos(angle);
+                  local s = math.sin(angle);
+                  local position = (player.Character.HumanoidRootPart.CFrame * CFrame.new(teleportDistance * c, 6, teleportDistance * s)).Position;
+                  movePlayerWithTelekinesis(position, v.Name);
+                end
+              end
+            end
+          end
+        end
+      )
+      
+      wait();
+    end
+  end
+);
+coroutine.resume(threadTelekinesis);
+--------------------
+
+
+generaInterfaccia("age of heroes");
+end);
+
+GUISection:NewButton("Dex Explorer", "", function()
+    loadstring(game:HttpGet("https://cdn.wearedevs.net/scripts/Dex%20Explorer.txt"))()
 end)
-
-
-
 -----------------------------------------------------------------------------------------------------------------------
 
 -- Add the Super Mega Crash Button and J Keybind
 ASection:NewButton("Super Mega Crash J", "Activates the Super Mega Crash function", function()
-activateSuperMegaCrash()
+    activateSuperMegaCrash()
 end)
 
 -- Bind the J Key to Activate the Super Mega Crash
 game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-if not gameProcessed and input.KeyCode == Enum.KeyCode.J then
-    activateSuperMegaCrash()
-end
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.J then
+        activateSuperMegaCrash()
+    end
 end)
 
 -- Super Mega Crash Function
 function activateSuperMegaCrash()
-local maxIterations = 25000 -- Max iterations for the crash effect
-spawn(function()
-    for i = 1, maxIterations do
-        game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
-    end
-end)
+    local maxIterations = 25000 -- Max iterations for the crash effect
+    spawn(function()
+        for i = 1, maxIterations do
+            game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
+        end
+    end)
 
-spawn(function()
-    for i = 1, maxIterations do
-        game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
-    end
-end)
+    spawn(function()
+        for i = 1, maxIterations do
+            game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
+        end
+    end)
 
-spawn(function()
-    for i = 1, maxIterations do
-        game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
-    end
-end)
+    spawn(function()
+        for i = 1, maxIterations do
+            game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer("true")
+        end
+    end)
 
--- Ensure the event is turned off after activation
-game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer(false)
-wait()
-game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer(false)
+    -- Ensure the event is turned off after activation
+    game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer(false)
+    wait()
+    game:GetService("ReplicatedStorage").Events.ToggleBlocking:FireServer(false)
 end
-
-
-ASection:NewToggle("Tele Lock Aura", "Toggle a telekinesis aura that locks onto targets", function(state)
-    getgenv().teleaura = state
-    if state then
-        -- Enable Telekinesis Lock Aura
-        task.spawn(function()
-            while getgenv().teleaura do
-                -- Use minimal waiting to prevent lag
-                local success, err = pcall(function()
-                    local LookVector = game.Workspace.CurrentCamera.CFrame.LookVector
-                    local replicatedStorage = game:GetService("ReplicatedStorage")
-                    local toggleEvent = replicatedStorage:WaitForChild("Events"):WaitForChild("ToggleTelekinesis")
-
-                    -- Trigger the telekinesis event
-                    toggleEvent:InvokeServer(LookVector, true)
-                    toggleEvent:InvokeServer(LookVector, false)
-                end)
-
-                if not success then
-                    warn("Error in Psychic Lock Aura: ", err)
-                end
-
-                task.wait(0.1) -- Wait to avoid overloading the system
-            end
-        end)
-    else
-        -- Disable Telekinesis Lock Aura
-        getgenv().teleaura = false
-    end
-end)
-
-
-
-
-
-
 
 SSection:NewToggle("Infinite Super Rapid Punch", "Punches infinitely until disabled", function(state)
     if state then
@@ -723,9 +2366,7 @@ ASection:NewToggle("Ground Crack Effect", "Toggle annoying ground cracks", funct
         end
     end
 end)
-ASection:NewButton("Give Bomb", "", function(state)
-    loadstring(game:HttpGet('https://pastebin.com/raw/861SQXj7'))()
-end);
+
 
 -- Variables
 local tagDisablerEnabled = false -- Toggle state
@@ -795,44 +2436,55 @@ ASection:NewButton("Teleport To Middle", "Click to teleport to the middle withou
 end)
 
 local mouse = game.Players.LocalPlayer:GetMouse()
--- Toggle for Auto Click 'C' Key
-ASection:NewToggle("Auto Click 'C'", "Automatically presses the C key repeatedly.", function(state)
-    getgenv().autoClickC = state -- Set a global variable to track the toggle state
 
-    if state then
-        -- Start Auto Clicking
-        spawn(function()
-            while getgenv().autoClickC do
-                -- Simulate pressing the C key
-                game:GetService("VirtualInputManager"):SendKeyEvent(true, "C", false, nil)
-                wait(0.001) -- Adjust the interval between clicks
-                game:GetService("VirtualInputManager"):SendKeyEvent(false, "C", false, nil)
-                wait(0.001) -- Interval before the next key press
-            end
-        end)
-    end
-end)
 
--- Toggle for Auto Click 'Z' Key
-ASection:NewToggle("Auto Click 'Z'", "Automatically presses the Z key repeatedly.", function(state)
-    getgenv().autoClickZ = state -- Set a global variable to track the toggle state
+-- Get VirtualInputManager
+local vim = game:GetService("VirtualInputManager")
 
-    if state then
-        -- Start Auto Clicking
-        spawn(function()
-            while getgenv().autoClickZ do
-                -- Simulate pressing the Z key
-                game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Z, false, nil)  -- Press 'Z'
-                wait(0.1)  -- Adjust the interval between key presses
-                game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Z, false, nil)  -- Release 'Z'
-                wait(0.1)  -- Interval before the next key press
-            end
-        end)
-    else
-        -- Stop the auto clicker when the toggle is off
-        getgenv().autoClickZ = false
-    end
-end)
+-- Create a table to store click delays for each key
+local clickDelays = {
+    V = 0.05,  -- Default delay (20 clicks per second)
+    C = 0.1,   -- Default delay (10 clicks per second)
+    Z = 0.2    -- Default delay (5 clicks per second)
+}
+
+-- Function to create an Auto Clicker toggle
+local function createAutoClickToggle(key, displayName)
+    ASection:NewToggle(displayName, "Automatically presses the " .. key .. " key repeatedly.", function(state)
+        getgenv()["autoClick" .. key] = state  -- Store toggle state
+
+        if state then
+            print(displayName .. " activated.")  -- Notify user
+            task.spawn(function()
+                while getgenv()["autoClick" .. key] do
+                    pcall(function()
+                        vim:SendKeyEvent(true, Enum.KeyCode[key], false, game)  -- Press key
+                        vim:SendKeyEvent(false, Enum.KeyCode[key], false, game) -- Release key
+                    end)
+
+                    task.wait(clickDelays[key])  -- Use the adjustable delay
+
+                    -- Instantly stop if the toggle is turned off
+                    if not getgenv()["autoClick" .. key] then break end
+                end
+            end)
+        else
+            print(displayName .. " deactivated.")  -- Notify user
+        end
+    end)
+
+    -- Create a slider to adjust the click delay
+    ASection:NewSlider("Click Speed: " .. key, "Adjust click delay for " .. key, 1, 100, clickDelays[key] * 100, function(value)
+        clickDelays[key] = value / 100  -- Convert from slider value to seconds
+    end)
+end
+
+-- Create Auto Clicker Toggles with Adjustable Speed
+createAutoClickToggle("V", "Auto Clicker 'V'")  
+createAutoClickToggle("C", "Auto Clicker 'C'")  
+createAutoClickToggle("Z", "Auto Clicker 'Z'")  
+
+
 
 
 -- Replace "ASection" with the actual section or object name in your script that defines this button
@@ -1066,9 +2718,6 @@ local function toggleNoclip()
 end
 
 -- Keybind setup (Kavo-style)
-KSection:NewKeybind("Toggle Noclip", "", Enum.KeyCode.L, function()
-    toggleNoclip()
-end)
 
     KSection:NewKeybind("Toggle UI", "", Enum.KeyCode.Y, function()
         Library:ToggleUI();
@@ -1106,54 +2755,39 @@ end)
     end);
 
 
-
-
     KSection:NewKeybind("Carry NPC", "", Enum.KeyCode['O'], function()
+        local player = game.Players.LocalPlayer
+        if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    
         if (_G.CToggle == false) then
-            spawn(function()
-                -- Call the function to get nearby players and NPCs
-                getNearPlayer(99);
-                wait();
-                _G.CToggle = true;
-                getgenv().CarryP = true;
-        
-                while CarryP do
-                    wait(0.2);  -- Minimal wait to reduce performance impact
+            task.spawn(function()
+                getNearPlayer(99)
+                task.wait()
+                _G.CToggle = true
+                getgenv().CarryP = true
     
-                    -- Loop through the plrlist to handle players and NPCs
-                    spawn(function()
-                        for _, v in pairs(plrlist) do
-                            if v == player then
-                                -- Skip the local player
-                                continue
-                            end
-    
-                            local target
-                            -- Check if the target is a player or an NPC
-                            if game.Players:FindFirstChild(v.Name) then
-                                target = game.Players[v.Name].Character
-                            else
-                                target = game.Workspace:FindFirstChild(v.Name) -- Assumes NPCs are in Workspace
-                            end
-    
-                            -- Ensure the target has a HumanoidRootPart to avoid errors
-                            if target and target:FindFirstChild("HumanoidRootPart") then
-                                local targetHumanoidRootPart = target.HumanoidRootPart
-                                local playerHumanoidRootPart = player.Character.HumanoidRootPart
-                                
-                                -- Move the target's HumanoidRootPart relative to the player
-                                targetHumanoidRootPart.CFrame = playerHumanoidRootPart.CFrame * CFrame.new(0, 8, 5)
+                while CarryP and player and player.Character do
+                    task.wait()
+                    task.spawn(function()
+                        for i, v in ipairs(plrlist) do
+                            if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                                local Xt = player.Character.HumanoidRootPart.Position.X
+                                local Yt = player.Character.HumanoidRootPart.Position.Y
+                                local Zt = player.Character.HumanoidRootPart.Position.Z
+                                local targetRoot = v.Character:FindFirstChild("HumanoidRootPart")
+                                if targetRoot then
+                                    targetRoot.CFrame = CFrame.new(Vector3.new(Xt, Yt + 8, Zt + 5))
+                                end
                             end
                         end
                     end)
                 end
             end)
         else
-            -- Disable carry when toggle is off
-            spawn(function()
-                _G.CToggle = false;
-                plrlist = {};  -- Clear the player list
-                getgenv().CarryP = false;
+            task.spawn(function()
+                _G.CToggle = false
+                plrlist = {}
+                getgenv().CarryP = false
             end)
         end
     end)
@@ -2320,26 +3954,48 @@ end)
     end)
     -- Toggle to start or stop Thug farming
     
-    SSection:NewToggle("Spawn Point", "", function(state)
-        if state then
-            getgenv().Deathcheck = true
-            local spawnPosition = player.Character.UpperTorso.Position
-            
-            -- Coroutine for respawning at the saved position
-            coroutine.wrap(function()
-                while getgenv().Deathcheck do
-                    local health = game.Players.LocalPlayer.Character.Humanoid.Health
-                    if health == 0 then
-                        wait(6.5) -- Wait before teleporting to avoid instant respawn issues
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(spawnPosition)
-                    end
-                    wait(1) -- Check health every second
-                end
-            end)()
-        else
-            getgenv().Deathcheck = false -- Stop respawn loop when toggled off
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local respawnPosition = nil  -- Stores the saved spawn position
+local deathCheckEnabled = false  -- Toggle for checking death
+
+-- Function to set spawn point
+local function setSpawnPoint()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        respawnPosition = player.Character.HumanoidRootPart.Position  -- Save position
+        deathCheckEnabled = true  -- Enable the respawn function
+        print("Spawn point set at:", respawnPosition)
+    end
+end
+
+-- Function to teleport after death
+local function onPlayerDied()
+    if deathCheckEnabled and respawnPosition then
+        wait(6.5)  -- Wait before teleporting
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(respawnPosition)
+            print("Teleported to spawn point:", respawnPosition)
         end
-    end)
+    end
+end
+
+-- Monitor player character respawn
+local function monitorDeath()
+    while deathCheckEnabled do
+        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            humanoid.Died:Connect(onPlayerDied)
+        end
+        wait(1)
+    end
+end
+
+-- UI Button for setting spawn point
+SSection:NewButton("Set Spawn Point", "Sets your spawn point and teleports instantly on death", function()
+    setSpawnPoint()  -- Save position
+    spawn(monitorDeath)  -- Start monitoring death
+end)
+
     MainSection:NewToggle("Laser Player Farm From Sky", "", function(state)
         if state then
             local playerPos = player.Character.HumanoidRootPart.Position
@@ -2433,7 +4089,7 @@ end)
         end
     end)
     
-    -- Toggleable Super Rapid Punch Aura
+
 ASection:NewToggle("Super Rapid Punch", "", function(state)
     -- Set toggle for super rapid punch
     getgenv().superrapid = state
@@ -3249,6 +4905,76 @@ TargetSection:NewToggle("Spectate Player", "", function(state)
     end
 end)
 
+TargetSection:NewToggle("Fling Player", "", function(state)
+    local player = game.Players.LocalPlayer
+    if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    if state then
+        -- Activate Fling
+        getgenv().fling = true
+        local p1 = player.Character.HumanoidRootPart
+
+        -- Update physical properties for all parts of the character
+        for _, child in ipairs(player.Character:GetDescendants()) do
+            if child:IsA("BasePart") then
+                child.CustomPhysicalProperties = PhysicalProperties.new(math.huge, 0.3, 0.5)
+            end
+        end
+
+        -- Add BodyAngularVelocity to the HumanoidRootPart
+        local bambam = Instance.new("BodyAngularVelocity")
+        bambam.Parent = p1
+        bambam.AngularVelocity = Vector3.new(0, 1000, 0)
+        bambam.MaxTorque = Vector3.new(0, math.huge, 0)
+        bambam.P = 10000 -- Ensure stability
+
+        -- Loop to manage the fling functionality
+        task.spawn(function()
+            while getgenv().fling and player and player.Character do
+                task.wait()
+                pcall(function()
+                    for _, v in ipairs(game.Workspace:GetChildren()) do
+                        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
+                            if v.Name == _G.tplayer then
+                                p1.CFrame = v.HumanoidRootPart.CFrame
+                            end
+                        end
+                    end
+                end)
+
+                -- Prevent the player from being affected by physics
+                for _, v in ipairs(player.Character:GetChildren()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                        v.Massless = true
+                        v.Velocity = Vector3.zero
+                    end
+                end
+            end
+        end)
+    else
+        -- Deactivate Fling
+        getgenv().fling = false
+        task.wait(0.1)
+
+        -- Reset character properties
+        for _, v in ipairs(player.Character:GetDescendants()) do
+            if v:IsA("BodyAngularVelocity") then
+                v:Destroy()
+            end
+            if v:IsA("BasePart") or v:IsA("MeshPart") then
+                v.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5)
+                v.CanCollide = true
+                v.Massless = false
+            end
+        end
+
+        -- Ensure velocity and physics reset
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.Velocity = Vector3.zero
+        end
+    end
+end)
 
     TargetSection:NewButton("Allow Target To Crash", "", function()
         spawn(function()
@@ -4563,6 +6289,7 @@ end)
             end);
         end
     end);
+
 
     KSection:NewKeybind("Telekinesis Lock", "", Enum.KeyCode['T'], function()
         spawn(function()
