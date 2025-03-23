@@ -100,15 +100,6 @@ end
 
 ASection:NewButton("Spawn Platform","", SpawnPlatform)
 ASection:NewButton("Teleport to Platform","", TeleportToPlatform)
-
-
-
-
-
-print("Part manipulation tool initialized. Click to select a part. Press R for Move, T for Resize, Z or Y for Rotate, G to delete. Current mode: " .. DefaultMode)
-
-print("Press B to disable or enable Part manipulation tool !")
-end);
 -----------------------------------------------------------------------------
 ASection:NewToggle("Anti-Tele", "Reduces the effectiveness of grab effects!", function(state)
     getgenv().AntiT = state  -- Track if anti-grab is enabled
