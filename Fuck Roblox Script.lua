@@ -1,15 +1,15 @@
 local function callback(Text)
-    if Text == "Start" then
+    if Text == "Main Script" then
         print("Executed - Loading Start Script")
         local scriptUrl = ""  -- Add your Start script URL here
         local success, err = pcall(function()
-           
+           local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Age%20of%20Fuck%20you.lua"))()
         end)
         if not success then
             warn("Failed to execute Start script:", err)
         end
 
-    elseif Text == "Fuck off" then
+    elseif Text == "Coming soon" then
         print("Executed - Loading Alternative Script")
         local scriptUrl = ""  -- Add your alternative script URL here
         local success, err = pcall(function()
