@@ -95,10 +95,44 @@ local function createCustomUI()
     Title.BackgroundTransparency = 1
     Title.Parent = Frame
 
+    -- Username Label (display the player's username)
+    local UsernameLabel = Instance.new("TextLabel")
+    UsernameLabel.Size = UDim2.new(1, 0, 0.15, 0)
+    UsernameLabel.Position = UDim2.new(0, 0, 0.2, 0)
+    UsernameLabel.Text = "User: " .. player.Name  -- Display player username
+    UsernameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    UsernameLabel.Font = Enum.Font.SourceSans
+    UsernameLabel.TextScaled = true
+    UsernameLabel.BackgroundTransparency = 1
+    UsernameLabel.Parent = Frame
+
+    -- Function to animate the RGB text effect on the username
+    local function rgbTextAnimation()
+        local colors = {
+            Color3.fromRGB(255, 0, 0),  -- Red
+            Color3.fromRGB(0, 255, 0),  -- Green
+            Color3.fromRGB(0, 0, 255),  -- Blue
+            Color3.fromRGB(255, 255, 0), -- Yellow
+            Color3.fromRGB(255, 165, 0), -- Orange
+            Color3.fromRGB(238, 130, 238), -- Violet
+            Color3.fromRGB(0, 255, 255), -- Cyan
+        }
+
+        local index = 1
+        while true do
+            UsernameLabel.TextColor3 = colors[index]
+            index = (index % #colors) + 1  -- Cycle through the colors
+            wait(0.5)  -- Change every 0.5 seconds
+        end
+    end
+
+    -- Start the RGB text animation
+    spawn(rgbTextAnimation)
+
     -- Subtitle
     local SubText = Instance.new("TextLabel")
     SubText.Size = UDim2.new(1, 0, 0.15, 0)
-    SubText.Position = UDim2.new(0, 0, 0.2, 0)
+    SubText.Position = UDim2.new(0, 0, 0.35, 0)
     SubText.Text = "Updates Coming Soon!"
     SubText.TextColor3 = Color3.fromRGB(255, 255, 255)
     SubText.Font = Enum.Font.SourceSans
@@ -109,7 +143,7 @@ local function createCustomUI()
     -- Main Script Button
     local MainButton = Instance.new("TextButton")
     MainButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-    MainButton.Position = UDim2.new(0.1, 0, 0.4, 0)
+    MainButton.Position = UDim2.new(0.1, 0, 0.5, 0)
     MainButton.Text = "▶ Main Script"
     MainButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
     MainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -125,7 +159,7 @@ local function createCustomUI()
     -- Coming Soon Button
     local SoonButton = Instance.new("TextButton")
     SoonButton.Size = UDim2.new(0.8, 0, 0.2, 0)
-    SoonButton.Position = UDim2.new(0.1, 0, 0.65, 0)
+    SoonButton.Position = UDim2.new(0.1, 0, 0.75, 0)
     SoonButton.Text = "⏳ Coming Soon"
     SoonButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     SoonButton.TextColor3 = Color3.fromRGB(255, 255, 255)
