@@ -500,9 +500,9 @@ AutoSection:NewToggle("Top Of Motel Sign", "Toggles the ultra-fast auto clicker"
 end)
 
 GUISection:NewButton("Gravity", "", function()
-loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Zero-Gravity-28484"))()
+ loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Zero-Gravity-28484"))()
 end)
----------------------------------------------------------------------------------------------------------------------------------------
+
 GUISection:NewButton("useful tools", "", function()
 local servizioTastiera = game:GetService("UserInputService");
 
