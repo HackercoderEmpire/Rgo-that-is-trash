@@ -3920,47 +3920,62 @@ end)
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local respawnPosition = nil  -- Stores the saved spawn position
+local deathCheckEnabled = false  -- Toggle for checking death
 
 -- Function to set spawn point
 local function setSpawnPoint()
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         respawnPosition = player.Character.HumanoidRootPart.Position  -- Save position
+        deathCheckEnabled = true  -- Enable the respawn function
         print("Spawn point set at:", respawnPosition)
     end
 end
 
--- Function to teleport after death
+-- Function to teleport after death or respawn
 local function onPlayerDied()
-    if respawnPosition then
-        task.wait(0.2)  -- Reduced wait time for better gameplay
-        if player.Character then
-            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                hrp.CFrame = CFrame.new(respawnPosition)
-                print("Teleported to spawn point:", respawnPosition)
-            end
+    if deathCheckEnabled and respawnPosition then
+        wait(0.01)  -- Wait before teleporting
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(respawnPosition)
+            print("Teleported to spawn point:", respawnPosition)
         end
     end
 end
 
--- Function to monitor player death
-local function characterAdded(char)
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.Died:Connect(onPlayerDied)
+-- Function to handle respawn event and re-teleport to spawn point
+local function onPlayerRespawned()
+    -- Teleport the player to the saved spawn point after respawn
+    if respawnPosition then
+        wait(0.1)  -- Wait a little for the new character to load
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(respawnPosition)
+            print("Teleported to spawn point after respawn:", respawnPosition)
+        end
     end
 end
 
--- Connect to character spawning
-player.CharacterAdded:Connect(characterAdded)
-if player.Character then
-    characterAdded(player.Character)
+-- Monitor player character respawn
+local function monitorDeath()
+    while deathCheckEnabled do
+        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            humanoid.Died:Connect(onPlayerDied)  -- Listen for player death
+        end
+        wait(0.01)
+    end
 end
+
+-- Listen for character respawn
+player.CharacterAdded:Connect(function()
+    onPlayerRespawned()  -- Teleport to the spawn point after respawning
+end)
 
 -- UI Button for setting spawn point
 SSection:NewButton("Set Spawn Point", "Sets your spawn point and teleports instantly on death", function()
     setSpawnPoint()  -- Save position
+    spawn(monitorDeath)  -- Start monitoring death
 end)
+
 
 
     MainSection:NewToggle("Laser Player Farm From Sky", "", function(state)
