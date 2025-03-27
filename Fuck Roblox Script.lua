@@ -13,6 +13,15 @@ local function loadScript(url)
     end
 end
 
+-- Function to hide UI with animation
+local function hideUI(Frame)
+    local fadeOut = TweenService:Create(Frame, TweenInfo.new(0.8), {BackgroundTransparency = 1})
+    fadeOut:Play()
+    fadeOut.Completed:Connect(function()
+        Frame.Parent:Destroy()  -- Remove UI after fade-out
+    end)
+end
+
 -- Function to create the UI
 local function createCustomUI()
     -- Create ScreenGui
@@ -77,14 +86,16 @@ local function createCustomUI()
     SoonButton.TextScaled = true
     SoonButton.Parent = Frame
 
-    -- Button Click Effects
+    -- Button Click Effects (With Fade-Out)
     MainButton.MouseButton1Click:Connect(function()
         print("Loading Main Script")
         loadScript("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Age%20of%20Fuck%20you.lua")
+        hideUI(Frame)  -- Hide UI after clicking
     end)
 
     SoonButton.MouseButton1Click:Connect(function()
         print("Feature Coming Soon!")
+        hideUI(Frame)  -- Hide UI after clicking
     end)
 
     -- Fade In Effect
