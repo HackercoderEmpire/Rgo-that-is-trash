@@ -1,14 +1,21 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Fuck-KavoUI.lua"))()
 
 local CyberBlueTheme = {
-    SchemeColor = Color3.fromRGB(0, 183, 255),    
-    Background = Color3.fromRGB(15, 15, 20),      
-    Header = Color3.fromRGB(25, 25, 35),         
-    TextColor = Color3.fromRGB(255, 255, 255),    
-    ElementColor = Color3.fromRGB(30, 30, 45)     
+    SchemeColor = Color3.fromRGB(0, 183, 255),    -- Primary Theme Color (Neon Blue)
+    Background = Color3.fromRGB(10, 10, 20),      -- Darker background for contrast
+    Header = Color3.fromRGB(20, 20, 35),         -- Slightly lighter than background
+    TextColor = Color3.fromRGB(255, 255, 255),   -- White text for visibility
+    ElementColor = Color3.fromRGB(30, 30, 50),   -- Element background color
+
+    -- Additional Elements
+    ButtonColor = Color3.fromRGB(0, 150, 255),   -- Neon blue button
+    ButtonHover = Color3.fromRGB(0, 200, 255),   -- Lighter blue hover effect
+    BorderColor = Color3.fromRGB(0, 100, 200),   -- Cyan border
+    GlowEffect = Color3.fromRGB(0, 255, 255),    -- Cyber glow effect
+    HighlightColor = Color3.fromRGB(0, 255, 150) -- Greenish-blue highlight
 }
 
-local Window = Library.CreateLib("(Stronger Then Ever) Age Of Heroes", CyberBlueTheme)
+local Window = Library.CreateLib("(Stronger Than Ever) Age Of Heroes", CyberBlueTheme)
 
 
 local ATab = Window:NewTab("Main");
@@ -3909,44 +3916,48 @@ end)
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local respawnPosition = nil  -- Stores the saved spawn position
-local deathCheckEnabled = false  -- Toggle for checking death
 
 -- Function to set spawn point
 local function setSpawnPoint()
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         respawnPosition = player.Character.HumanoidRootPart.Position  -- Save position
-        deathCheckEnabled = true  -- Enable the respawn function
         print("Spawn point set at:", respawnPosition)
     end
 end
 
 -- Function to teleport after death
 local function onPlayerDied()
-    if deathCheckEnabled and respawnPosition then
-        wait(6.5)  -- Wait before teleporting
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(respawnPosition)
-            print("Teleported to spawn point:", respawnPosition)
+    if respawnPosition then
+        task.wait(0.2)  -- Reduced wait time for better gameplay
+        if player.Character then
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.CFrame = CFrame.new(respawnPosition)
+                print("Teleported to spawn point:", respawnPosition)
+            end
         end
     end
 end
 
--- Monitor player character respawn
-local function monitorDeath()
-    while deathCheckEnabled do
-        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-            humanoid.Died:Connect(onPlayerDied)
-        end
-        wait(1)
+-- Function to monitor player death
+local function characterAdded(char)
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.Died:Connect(onPlayerDied)
     end
+end
+
+-- Connect to character spawning
+player.CharacterAdded:Connect(characterAdded)
+if player.Character then
+    characterAdded(player.Character)
 end
 
 -- UI Button for setting spawn point
 SSection:NewButton("Set Spawn Point", "Sets your spawn point and teleports instantly on death", function()
     setSpawnPoint()  -- Save position
-    spawn(monitorDeath)  -- Start monitoring death
 end)
+
 
     MainSection:NewToggle("Laser Player Farm From Sky", "", function(state)
         if state then
