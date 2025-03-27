@@ -32,7 +32,7 @@ local function hideUI(Frame)
     end)
 end
 
--- Function to create draggable UI
+-- Function to create draggable UI with dynamic RGB border
 local function createCustomUI()
     -- Create ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
@@ -54,16 +54,41 @@ local function createCustomUI()
     UICorner.CornerRadius = UDim.new(0.1, 0)  -- Smooth round effect
     UICorner.Parent = Frame
 
-    -- Cyber Glow Effect
+    -- RGB Border Outline Effect
     local UIStroke = Instance.new("UIStroke")
-    UIStroke.Thickness = 3
-    UIStroke.Color = Color3.fromRGB(0, 183, 255)
+    UIStroke.Thickness = 5
+    UIStroke.Transparency = 0.4
     UIStroke.Parent = Frame
+
+    -- Function to animate RGB border color change
+    local function rgbBorderAnimation()
+        local colors = {
+            Color3.fromRGB(255, 0, 0),  -- Red
+            Color3.fromRGB(0, 255, 0),  -- Green
+            Color3.fromRGB(0, 0, 255),  -- Blue
+            Color3.fromRGB(255, 255, 0), -- Yellow
+            Color3.fromRGB(255, 165, 0), -- Orange
+            Color3.fromRGB(238, 130, 238), -- Violet
+            Color3.fromRGB(0, 255, 255), -- Cyan
+        }
+
+        -- Create a tween to cycle through the colors
+        local index = 1
+        while true do
+            local tween = TweenService:Create(UIStroke, TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true), {Color = colors[index]})
+            tween:Play()
+            index = (index % #colors) + 1  -- Cycle through the colors
+            wait(2)
+        end
+    end
+
+    -- Start the RGB animation
+    spawn(rgbBorderAnimation)
 
     -- Title Label
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0.2, 0)
-    Title.Text = "Age Of Heroes"
+    Title.Text = "⚡ Age Of Heroes ⚡"
     Title.TextColor3 = Color3.fromRGB(0, 255, 255)
     Title.Font = Enum.Font.SourceSansBold
     Title.TextScaled = true
@@ -74,7 +99,7 @@ local function createCustomUI()
     local SubText = Instance.new("TextLabel")
     SubText.Size = UDim2.new(1, 0, 0.15, 0)
     SubText.Position = UDim2.new(0, 0, 0.2, 0)
-    SubText.Text = "Updates Coming Soon!"
+    SubText.Text = "🚀 Updates Coming Soon!"
     SubText.TextColor3 = Color3.fromRGB(255, 255, 255)
     SubText.Font = Enum.Font.SourceSans
     SubText.TextScaled = true
