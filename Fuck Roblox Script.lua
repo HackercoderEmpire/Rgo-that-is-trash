@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
 local player = Players.LocalPlayer
 local PlayerGui = player:FindFirstChildOfClass("PlayerGui")
 
@@ -13,6 +14,15 @@ local function loadScript(url)
     end
 end
 
+-- Function to show a notification
+local function showNotification(title, text, duration)
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = duration
+    })
+end
+
 -- Function to hide UI with animation
 local function hideUI(Frame)
     local fadeOut = TweenService:Create(Frame, TweenInfo.new(0.8), {BackgroundTransparency = 1})
@@ -22,7 +32,7 @@ local function hideUI(Frame)
     end)
 end
 
--- Function to create the UI
+-- Function to create draggable UI
 local function createCustomUI()
     -- Create ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
@@ -35,6 +45,8 @@ local function createCustomUI()
     Frame.Position = UDim2.new(0.3, 0, 0.35, 0)
     Frame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
     Frame.BorderSizePixel = 0
+    Frame.Active = true  -- Enables dragging
+    Frame.Draggable = true  -- Makes UI draggable
     Frame.Parent = ScreenGui
 
     -- Cyber Glow Effect
@@ -46,7 +58,7 @@ local function createCustomUI()
     -- Title Label
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0.2, 0)
-    Title.Text = "Age Of Heroes"
+    Title.Text = "⚡ Age Of Heroes ⚡"
     Title.TextColor3 = Color3.fromRGB(0, 255, 255)
     Title.Font = Enum.Font.SourceSansBold
     Title.TextScaled = true
@@ -57,7 +69,7 @@ local function createCustomUI()
     local SubText = Instance.new("TextLabel")
     SubText.Size = UDim2.new(1, 0, 0.15, 0)
     SubText.Position = UDim2.new(0, 0, 0.2, 0)
-    SubText.Text = "Updates Coming Soon!"
+    SubText.Text = "🚀 Updates Coming Soon!"
     SubText.TextColor3 = Color3.fromRGB(255, 255, 255)
     SubText.Font = Enum.Font.SourceSans
     SubText.TextScaled = true
@@ -95,6 +107,7 @@ local function createCustomUI()
 
     SoonButton.MouseButton1Click:Connect(function()
         print("Feature Coming Soon!")
+        showNotification("⚠ Update Info", "This script is coming in the next update!", 5)  -- Show notification
         hideUI(Frame)  -- Hide UI after clicking
     end)
 
