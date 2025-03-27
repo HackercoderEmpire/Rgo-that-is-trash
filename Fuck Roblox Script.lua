@@ -49,6 +49,11 @@ local function createCustomUI()
     Frame.Draggable = true  -- Makes UI draggable
     Frame.Parent = ScreenGui
 
+    -- Rounded Corners
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0.1, 0)  -- Smooth round effect
+    UICorner.Parent = Frame
+
     -- Cyber Glow Effect
     local UIStroke = Instance.new("UIStroke")
     UIStroke.Thickness = 3
@@ -87,6 +92,11 @@ local function createCustomUI()
     MainButton.TextScaled = true
     MainButton.Parent = Frame
 
+    -- Rounded corners for button
+    local ButtonCorner1 = Instance.new("UICorner")
+    ButtonCorner1.CornerRadius = UDim.new(0.2, 0)  -- Smooth button edges
+    ButtonCorner1.Parent = MainButton
+
     -- Coming Soon Button
     local SoonButton = Instance.new("TextButton")
     SoonButton.Size = UDim2.new(0.8, 0, 0.2, 0)
@@ -97,6 +107,11 @@ local function createCustomUI()
     SoonButton.Font = Enum.Font.SourceSansBold
     SoonButton.TextScaled = true
     SoonButton.Parent = Frame
+
+    -- Rounded corners for button
+    local ButtonCorner2 = Instance.new("UICorner")
+    ButtonCorner2.CornerRadius = UDim.new(0.2, 0)  -- Smooth button edges
+    ButtonCorner2.Parent = SoonButton
 
     -- Button Click Effects (With Fade-Out)
     MainButton.MouseButton1Click:Connect(function()
