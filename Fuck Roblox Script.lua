@@ -28,11 +28,11 @@ NotifacationBindable.OnInvoke = callback
 -- Send Notification with Cyber Effects
 game.StarterGui:SetCore("SendNotification", {
     Title = "Age Of Heroes";  
-    Text = "Being Updated, will be back soon!";  
+    Text = "Updates Soon";  
     Icon = "";  
     Duration = 7;  
-    Button1 = "Start";  
-    Button2 = "Fuck off";  -- Now loads a script instead of closing
+    Button1 = "Main Script";  
+    Button2 = "Coming Soon";  -- Now loads a script instead of closing
     Callback = NotifacationBindable
 })
 
