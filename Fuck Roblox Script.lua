@@ -2,7 +2,7 @@ local function callback(Text)
     if Text == "Start" then
         print("Executed")
         -- Load the external script when the "Start" button is clicked
-        local scriptUrl = "https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Age%20of%20Fuck%20you.lua"
+        local scriptUrl = ""
         local loadedScript = loadstring(game:HttpGet(scriptUrl))()
     elseif Text == "Fuck off" then
         print("Not Executed")
@@ -15,7 +15,7 @@ NotifacationBindable.OnInvoke = callback
 
 game.StarterGui:SetCore("SendNotification", {
     Title = "Age Of Heroes";
-    Text = "Have Fun No Sharing this Script";
+    Text = "Being Updated Will be back soon";
     Icon = "";
     Duration = 5;
     Button1 = "Start";
