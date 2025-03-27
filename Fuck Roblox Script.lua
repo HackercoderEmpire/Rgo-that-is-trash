@@ -1,24 +1,38 @@
 local function callback(Text)
     if Text == "Start" then
-        print("Executed")
-        -- Load the external script when the "Start" button is clicked
-        local scriptUrl = ""
-        local loadedScript = loadstring(game:HttpGet(scriptUrl))()
+        print("Executed - Loading Start Script")
+        local scriptUrl = ""  -- Add your Start script URL here
+        local success, err = pcall(function()
+           
+        end)
+        if not success then
+            warn("Failed to execute Start script:", err)
+        end
+
     elseif Text == "Fuck off" then
-        print("Not Executed")
-        game:Shutdown()  -- Close the game when the "Fuck off" button is clicked
+        print("Executed - Loading Alternative Script")
+        local scriptUrl = ""  -- Add your alternative script URL here
+        local success, err = pcall(function()
+            
+        end)
+        if not success then
+            warn("Failed to execute Fuck off script:", err)
+        end
     end
 end
 
+-- Create Notification Bindable Function
 local NotifacationBindable = Instance.new("BindableFunction")
 NotifacationBindable.OnInvoke = callback
 
+-- Send Notification with Cyber Effects
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Age Of Heroes";
-    Text = "Being Updated Will be back soon";
-    Icon = "";
-    Duration = 5;
-    Button1 = "Start";
-    Button2 = "Fuck off";
+    Title = "Age Of Heroes";  
+    Text = "Being Updated, will be back soon!";  
+    Icon = "";  
+    Duration = 7;  
+    Button1 = "Start";  
+    Button2 = "Fuck off";  -- Now loads a script instead of closing
     Callback = NotifacationBindable
 })
+
