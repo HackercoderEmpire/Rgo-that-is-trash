@@ -88,7 +88,7 @@ local function createCustomUI()
     -- Title Label
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0.2, 0)
-    Title.Text = "⚡ Age Of Heroes ⚡"
+    Title.Text = "Age Of Heroes"
     Title.TextColor3 = Color3.fromRGB(0, 255, 255)
     Title.Font = Enum.Font.SourceSansBold
     Title.TextScaled = true
@@ -99,7 +99,7 @@ local function createCustomUI()
     local SubText = Instance.new("TextLabel")
     SubText.Size = UDim2.new(1, 0, 0.15, 0)
     SubText.Position = UDim2.new(0, 0, 0.2, 0)
-    SubText.Text = "🚀 Updates Coming Soon!"
+    SubText.Text = "Updates Coming Soon!"
     SubText.TextColor3 = Color3.fromRGB(255, 255, 255)
     SubText.Font = Enum.Font.SourceSans
     SubText.TextScaled = true
