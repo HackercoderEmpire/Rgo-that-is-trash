@@ -1,21 +1,23 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Fuck-KavoUI.lua"))()
 
-local CyberBlueTheme = {
-    SchemeColor = Color3.fromRGB(0, 183, 255),    -- Primary Theme Color (Neon Blue)
-    Background = Color3.fromRGB(10, 10, 20),      -- Darker background for contrast
-    Header = Color3.fromRGB(20, 20, 35),         -- Slightly lighter than background
-    TextColor = Color3.fromRGB(255, 255, 255),   -- White text for visibility
-    ElementColor = Color3.fromRGB(30, 30, 50),   -- Element background color
-
-    -- Additional Elements
-    ButtonColor = Color3.fromRGB(0, 150, 255),   -- Neon blue button
-    ButtonHover = Color3.fromRGB(0, 200, 255),   -- Lighter blue hover effect
-    BorderColor = Color3.fromRGB(0, 100, 200),   -- Cyan border
-    GlowEffect = Color3.fromRGB(0, 255, 255),    -- Cyber glow effect
-    HighlightColor = Color3.fromRGB(0, 255, 150) -- Greenish-blue highlight
+local CyberNeonTheme = {
+    SchemeColor = Color3.fromRGB(0, 200, 255),    -- Electric Neon Blue
+    Background = Color3.fromRGB(5, 5, 15),       -- Deep Cyber Black
+    Header = Color3.fromRGB(15, 15, 30),         -- Darker steel blue for futuristic feel
+    TextColor = Color3.fromRGB(255, 255, 255),   -- Bright white for sharp contrast
+    ElementColor = Color3.fromRGB(25, 25, 45),   -- Dark blue elements with slight visibility
+    
+    -- Futuristic Enhancements
+    ButtonColor = Color3.fromRGB(0, 180, 255),   -- Strong Neon Blue
+    ButtonHover = Color3.fromRGB(0, 255, 255),   -- Electric Cyan Hover
+    BorderColor = Color3.fromRGB(0, 120, 220),   -- Glowing cyan edges
+    GlowEffect = Color3.fromRGB(0, 255, 255),    -- High-intensity blue glow
+    HighlightColor = Color3.fromRGB(0, 255, 180),-- Neon Aqua-Green highlights
+    ShadowEffect = Color3.fromRGB(0, 80, 150),   -- Subtle cyber glow shadow
 }
 
-local Window = Library.CreateLib("(Stronger Than Ever) Age Of Heroes", CyberBlueTheme)
+local Window = Library.CreateLib("(Stronger Than Ever) Age Of Heroes", CyberNeonTheme)
+
 
 
 local ATab = Window:NewTab("Main");
