@@ -13,9 +13,8 @@ local CyberNeonTheme = {
     BorderColor = Color3.fromRGB(0, 120, 220),   -- Glowing cyan edges
     GlowEffect = Color3.fromRGB(0, 255, 255),    -- High-intensity blue glow
     HighlightColor = Color3.fromRGB(0, 255, 180),-- Neon Aqua-Green highlights
-    ShadowEffect = Color3.fromRGB(0, 80, 150),   -- Subtle cyber glow shadow
+    ShadowEffect = Color3.fromRGB(0, 2, 119),   -- Subtle cyber glow shadow
 }
-
 local Window = Library.CreateLib("(Stronger Than Ever) Age Of Heroes", CyberNeonTheme)
 
 
