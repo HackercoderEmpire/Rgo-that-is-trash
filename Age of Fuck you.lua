@@ -129,7 +129,7 @@ end
 ASection:NewButton("Spawn Platform","", SpawnPlatform)
 ASection:NewButton("Teleport to Platform","", TeleportToPlatform)
 -----------------------------------------------------------------------------
-ASection:NewToggle("Fixed but Still being worked on Anti-Tele", "Completely blocks telekinesis grabs!", function(state)
+ASection:NewToggle("Fixed but Still being worked on (Anti-Tele)", "Completely blocks telekinesis grabs!", function(state)
     getgenv().AntiT = state  -- Track if anti-grab is enabled
 
     local player = game.Players.LocalPlayer
