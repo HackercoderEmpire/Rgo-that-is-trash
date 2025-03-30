@@ -127,7 +127,7 @@ end
 ASection:NewButton("Spawn Platform","", SpawnPlatform)
 ASection:NewButton("Teleport to Platform","", TeleportToPlatform)
 -----------------------------------------------------------------------------
-ASection:NewToggle("Anti-Tele", "Reduces the effectiveness of grab effects!", function(state)
+ASection:NewToggle("Fixed but Still being worked on Anti-Tele", "Completely blocks telekinesis grabs!", function(state)
     getgenv().AntiT = state  -- Track if anti-grab is enabled
 
     local player = game.Players.LocalPlayer
@@ -137,40 +137,30 @@ ASection:NewToggle("Anti-Tele", "Reduces the effectiveness of grab effects!", fu
     -- Find the event safely
     local toggleTelekinesisEvent = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("ToggleTelekinesis")
 
-    -- Cooldown time to avoid excessive protection (adjustable)
-    local protectionCooldown = 1  -- 1-second cooldown between protections
-    local lastProtectionTime = 0  -- Time of last protection activation
-
-    -- Function to weaken grabs instead of fully blocking them
-    local function weakenGrab()
+    -- Function to block grabs
+    local function blockGrab()
         if getgenv().AntiT and toggleTelekinesisEvent and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = player.Character.HumanoidRootPart
-            local currentTime = tick()
-
-            -- Prevent spam by checking cooldown
-            if currentTime - lastProtectionTime >= protectionCooldown then
-                lastProtectionTime = currentTime  -- Update the last activation time
-                
-                -- Apply limited interference (instead of blocking completely)
-                local weakenFactor = math.random(0.3, 0.7)  -- Reduce teleport/grab strength by 30% - 70%
-
-                -- Invoke the event but with a weaker effect
-                toggleTelekinesisEvent:InvokeServer(hrp.Position * weakenFactor, false, player.Character)
-                print("Roblox Sucks", weakenFactor)
-            end
+            
+            -- Block the grab by overriding the event
+            toggleTelekinesisEvent:InvokeServer(hrp.Position, true, player.Character)
+            print("Telekinesis Blocked!")
         end
     end
 
-    -- Activate limited protection
+    -- Activate grab protection
     if state then
         if toggleTelekinesisEvent then
-            -- Connect to a slower loop instead of every frame
-            getgenv().protectionConnection = RunService.Heartbeat:Connect(weakenGrab)
+            -- Run every 0.5 seconds to prevent lag
+            getgenv().protectionConnection = RunService.Heartbeat:Connect(function()
+                blockGrab()
+                wait(0.01)
+            end)
         else
-            warn("Haha roblox sucks")
+            warn("Telekinesis event not found!")
         end
     else
-        -- Disconnect when toggled off
+        -- Disable the protection
         if getgenv().protectionConnection then
             getgenv().protectionConnection:Disconnect()
             getgenv().protectionConnection = nil
@@ -178,7 +168,6 @@ ASection:NewToggle("Anti-Tele", "Reduces the effectiveness of grab effects!", fu
         getgenv().AntiT = false
     end
 end)
-
 
 ----------------------------------------------------------------
 
@@ -2929,23 +2918,7 @@ end);
     
     GSection:NewTextBox("Heigh", "", function(txt)
         getgenv().heigh = txt
-    end)
-    GSection:NewButton("Infinite Yield", "", function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-    end);
-    GSection:NewButton("Chat Spammer", "", function()
-        loadstring(game:HttpGet(('https://raw.githubusercontent.com/ColdStep2/Chatdestroyer-Hub-V1/main/Chatdestroyer%20Hub%20V1'),true))()
-    end);
-    GSection:NewButton("Dex/Explorer", "", function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
-    end);
-    GSection:NewButton("Chat Spoofer", "", function()
-        loadstring(game:HttpGet(('https://pastebin.com/raw/djBfk8Li'),true))()
-    end);
-    GSection:NewButton("Chat bypasser", "", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/synnyyy/synergy/additional/betterbypasser", true))()
-    end)
-    
+    end) 
     _G.CToggle = false;
     _G.metalskin = false;
     _G.LOCALPLAYER = game.Players.LocalPlayer.Name;
@@ -4772,45 +4745,6 @@ end)
             end
         end)
     end)
-    
-local spawnInterval = 0.2  -- Time in seconds between ball spawns (faster spawning)
-
--- Toggle the ball spawning on/off
-ASection:NewToggle("Spawn Balls Toggle", "Create balls below you", function()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    
-    -- Toggle the spawning status
-    platformSpawning = not platformSpawning
-    
-    -- If spawning is now active, start the loop
-    if platformSpawning then
-        -- Start spawning balls
-        spawnBall(character)
-    end
-end)
-
--- Function to handle the ball spawning
-function spawnBall(character)
-    spawn(function()
-        while platformSpawning do
-            -- Create a new ball (spherical part)
-            local ball = Instance.new("Part")
-            ball.Shape = Enum.PartType.Ball  -- Set the shape to ball
-            ball.Size = Vector3.new(4, 4, 4)  -- Size of the ball (adjustable)
-            ball.Color = Color3.fromRGB(255, 0, 0)  -- Color of the ball (adjustable)
-            ball.Position = character.HumanoidRootPart.Position - Vector3.new(0, 3, 0)  -- Position it below the player
-            ball.Anchored = true  -- Anchor the ball to prevent it from falling
-            ball.CanCollide = false  -- Make it non-collidable to avoid interaction
-            ball.Parent = workspace  -- Parent the ball to the workspace
-            
-            -- Wait for the specified interval before creating the next ball
-            wait(spawnInterval)
-        end
-    end)
-end
-
-
     GetList();
     local slcplr = TargetSection:NewDropdown("Select Player", "", dropdown, function(currentOption)
         spawn(function()
@@ -5569,32 +5503,6 @@ ASection:NewToggle("Ground Crack Aura", "", function(state)
     end
 end)
 
-
-    ASection:NewToggle("Anti-Grab --- Remastered", "", function(state)
-        getgenv().AntiT = state  -- Directly set AntiT based on the button state
-    
-        -- Function to continuously protect the player from grabs
-        local function protectPlayer()
-            pcall(function()
-                local playerToProtect = game.Players.LocalPlayer
-                if playerToProtect and playerToProtect.Character then
-                    x999999999999999999999999999999999.Events.ToggleTelekinesis:InvokeServer(Vector3.new(1, 1, 1), true, playerToProtect.Character)
-                end
-            end)
-        end
-    
-        -- Connection to continuously protect the player
-        local stepConnection
-        stepConnection = game:GetService("RunService").Stepped:Connect(function()
-            if getgenv().AntiT then
-                protectPlayer() 
-            else
-                if stepConnection then  -- Check if the connection is active before disconnecting
-                    stepConnection:Disconnect()
-                end
-            end
-        end)
-    end)
     -- Variable to store the speed intensity from the slider
     local speedIntensity = 1  -- Default value
     local isSpamming = false   -- Variable to track if spamming is active
@@ -5702,31 +5610,7 @@ end)
             -- When the toggle is turned off
             getgenv().Hrapid = false
         end
-    end)
-    
-    ----------------------------------------------------------------------------------------------
-    GSection:NewLabel("Ask questions or get help!")
-    
-    -- Adding a button to simulate a help response
-    GSection:NewButton("Get Help", "Simulates a ChatGPT response", function()
-        print("Simulated Help: How can I assist you?")
-    end)
-    
-    -- Adding a text box for input
-    GSection:NewTextBox("Ask ChatGPT", "Type here...", function(text)
-        print("User asked: " .. text)
-    end)
-    
-    -- Adding a slider to represent "AI Confidence"
-    GSection:NewSlider("Confidence Level", "Sets ChatGPT confidence", 100, 0, function(value)
-        print("ChatGPT Confidence Level: " .. value .. "%")
-    end)
-    
-    -- Adding a toggle to activate AI mode
-    GSection:NewToggle("Activate AI Mode", "Toggle AI mode on/off", function(state)
-        print(state and "AI Mode Activated" or "AI Mode Deactivated")
-    end)
-    
+    end)  
     ---------------------------------------------------------------------------------------------
     ASection:NewButton("Super Mega Crash", "", function(state)
         local totalIterations = 25000 -- Set total iterations
