@@ -41,6 +41,25 @@ local GSection = GTab:NewSection("Chat spam/spoof - Infinite Yield");
 
 
 
+
+
+
+-- Add the Super Mega Crash Button and J Keybind
+ASection:NewButton("Super Mega Crash J", "Activates the Super Mega Crash function", function()
+    activateSuperMegaCrash()
+end)
+
+-- Bind the J Key to Activate the Super Mega Crash
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.J then
+        activateSuperMegaCrash()
+    end
+end)
+
+
+
+
+
 local teleportEnabled = false
 local teleportPosition = Vector3.new(-379.5263366699219, 94.1015625, 70.03193664550781)
 local player = game.Players.LocalPlayer
