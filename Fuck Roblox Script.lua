@@ -144,7 +144,7 @@ local function createCustomUI()
     local MainButton = Instance.new("TextButton")
     MainButton.Size = UDim2.new(0.8, 0, 0.2, 0)
     MainButton.Position = UDim2.new(0.1, 0, 0.5, 0)
-    MainButton.Text = "▶ Main Script"
+    MainButton.Text = "▶ Main Script (3 day ban if used wrong)"
     MainButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
     MainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     MainButton.Font = Enum.Font.SourceSansBold
