@@ -3415,7 +3415,7 @@ end);
         plrlist = {};
     end);
 -- Dropdown for selecting a stat
-StatSection:NewDropdown("AutoStats", "Select a stat to upgrade automatically", 
+ StatSection:NewDropdown("AutoStats", "Select a stat to upgrade automatically", 
     {
         "vitality", "healing", "strength", "energy", "flight", "speed", 
         "climbing", "swinging", "fireball", "frost", "lightning", 
@@ -3425,68 +3425,99 @@ StatSection:NewDropdown("AutoStats", "Select a stat to upgrade automatically",
         selectedstat = currentOption
     end
 )
--- Variable to store delay in milliseconds
-local AutoStatsDelay = 10  -- Default: 10ms (0.01s)
 
--- Slider to set the delay (in milliseconds)
+local AutoStatsDelay = 10  -- Default delay in milliseconds
+
 StatSection:NewSlider("AutoStats Delay (ms)", "Set delay in milliseconds", 1, 1000, function(value)
-    AutoStatsDelay = value / 1000  -- Convert milliseconds to seconds
+    AutoStatsDelay = value / 1000  -- Convert to seconds
 end)
 
--- Toggle for enabling/disabling AutoStats
+local function canUpgrade(stat)
+    local stats = game:GetService("ReplicatedStorage").Events.GetStats:InvokeServer()
+    return stats and stats[stat] and stats[stat] >= 50  -- Check if stat has 50 or more XP
+end
+
 StatSection:NewToggle("Toggle AutoStats", "Enable or disable AutoStats", function(state)
     if state then
-        -- Ensure a stat is selected before proceeding
-        if not selectedstat then
-            warn("No stat selected! Please select a stat from the dropdown.")
+        if not selectedstat or not canUpgrade(selectedstat) then
+            warn("No valid stat selected! Ensure the stat has 50 or more XP.")
             return
         end
 
         getgenv().AutoStats = true
         coroutine.wrap(function()
             while getgenv().AutoStats do
-                wait(AutoStatsDelay)  -- Wait using the user-set delay
+                wait(AutoStatsDelay)
                 pcall(function()
-                    -- Upgrade the selected stat multiple times per tick
-                    for _ = 1, 1000 do
+                    if canUpgrade(selectedstat) then
                         game:GetService("ReplicatedStorage").Events.UpgradeAbility:InvokeServer(selectedstat)
                     end
                 end)
             end
         end)()
     else
-        -- Disable AutoStats
         getgenv().AutoStats = false
     end
 end)
 
--- Additional Option: Reset Stats
+StatSection:NewButton("Check Eligible Stats", "See which stats have 50+ XP", function()
+    local stats = game:GetService("ReplicatedStorage").Events.GetStats:InvokeServer()
+    for stat, xp in pairs(stats) do
+        if xp >= 50 then
+            print("Eligible stat:", stat, "XP:", xp)
+        end
+    end
+end)
+
+local statCategories = {
+    Physical = {"vitality", "strength", "speed", "climbing", "swinging"},
+    Energy = {"energy", "flight", "fireball", "frost", "lightning"},
+    Defensive = {"healing", "shield", "metalSkin"},
+    Special = {"power", "telekinesis", "laserVision"}
+}
+
+for category, stats in pairs(statCategories) do
+    local CategorySection = StatSection:NewSection(category .. " Abilities")
+    for _, stat in pairs(stats) do
+        CategorySection:NewButton("Upgrade " .. stat, "Upgrade " .. stat .. " instantly", function()
+            if canUpgrade(stat) then
+                game:GetService("ReplicatedStorage").Events.UpgradeAbility:InvokeServer(stat)
+                print("Upgraded", stat)
+            else
+                print(stat .. " does not have enough XP (50 required).")
+            end
+        end)
+        
+        CategorySection:NewButton("Upgrade " .. stat .. " x10", "Upgrade " .. stat .. " 10 times", function()
+            if canUpgrade(stat) then
+                for _ = 1, 10 do
+                    game:GetService("ReplicatedStorage").Events.UpgradeAbility:InvokeServer(stat)
+                end
+                print("Upgraded", stat, "10 times")
+            else
+                print(stat .. " does not have enough XP (50 required).")
+            end
+        end)
+        
+        CategorySection:NewButton("Upgrade " .. stat .. " x100", "Upgrade " .. stat .. " 100 times", function()
+            if canUpgrade(stat) then
+                for _ = 1, 100 do
+                    game:GetService("ReplicatedStorage").Events.UpgradeAbility:InvokeServer(stat)
+                end
+                print("Upgraded", stat, "100 times")
+            else
+                print(stat .. " does not have enough XP (50 required).")
+            end
+        end)
+    end
+end
+
 StatSection:NewButton("Reset Stats", "Reset all stats to base level", function()
     pcall(function()
         game:GetService("ReplicatedStorage").Events.ResetStats:InvokeServer()
         print("Stats have been reset successfully!")
     end)
 end)
-
--- Additional Option: Auto Select Most Important Stat
-StatSection:NewButton("Auto Select Recommended Stat", "Automatically selects the best stat based on your character's role", function()
-    local recommendedStat = "strength" -- Default recommendation
-    local role = game.Players.LocalPlayer.Character:FindFirstChild("Role") -- Example role check (customize as needed)
-
-    if role then
-        if role.Value == "Tank" then
-            recommendedStat = "vitality"
-        elseif role.Value == "DPS" then
-            recommendedStat = "strength"
-        elseif role.Value == "Healer" then
-            recommendedStat = "healing"
-        end
-    end
-
-    selectedstat = recommendedStat
-    print("Recommended stat selected:", recommendedStat)
-end)
-
 
     -- Laser Civilian Farm Toggle
     MainSection:NewToggle("Laser Civilian Farm", "", function(state)
