@@ -27,8 +27,8 @@ local TargetTab = Window:NewTab("Target");
 local TargetSection = TargetTab:NewSection("Teleport To Player");
 local AutoTab = Window:NewTab("Teleport");
 local AutoSection = AutoTab:NewSection("Teleport/Auto Teleport");
-local StatTab = Window:NewTab("Auto Stat");
-local StatSection = StatTab:NewSection("Auto set ur Stats");
+local StatsTab = Window:NewTab("Stats")
+local StatSection = StatsTab:NewSection("Stat Upgrader")
 local MainTab = Window:NewTab("Auto Farm");
 local MainSection = MainTab:NewSection("Auto Farm NPC/Player");
 local GUITab = Window:NewTab("GUI's");
@@ -3414,8 +3414,7 @@ end);
         end
         plrlist = {};
     end);
--- Dropdown for selecting a stat
- StatSection:NewDropdown("AutoStats", "Select a stat to upgrade automatically", 
+StatSection:NewDropdown("AutoStats", "Select a stat to upgrade automatically", 
     {
         "vitality", "healing", "strength", "energy", "flight", "speed", 
         "climbing", "swinging", "fireball", "frost", "lightning", 
@@ -3433,8 +3432,11 @@ StatSection:NewSlider("AutoStats Delay (ms)", "Set delay in milliseconds", 1, 10
 end)
 
 local function canUpgrade(stat)
-    local stats = game:GetService("ReplicatedStorage").Events.GetStats:InvokeServer()
-    return stats and stats[stat] and stats[stat] >= 50  -- Check if stat has 50 or more XP
+    local success, stats = pcall(function()
+        return game:GetService("ReplicatedStorage").Events.GetStats:InvokeServer()
+    end)
+    if not success or not stats then return false end
+    return stats[stat] and stats[stat] >= 50  -- Check if stat has 50 or more XP
 end
 
 StatSection:NewToggle("Toggle AutoStats", "Enable or disable AutoStats", function(state)
@@ -3461,14 +3463,21 @@ StatSection:NewToggle("Toggle AutoStats", "Enable or disable AutoStats", functio
 end)
 
 StatSection:NewButton("Check Eligible Stats", "See which stats have 50+ XP", function()
-    local stats = game:GetService("ReplicatedStorage").Events.GetStats:InvokeServer()
-    for stat, xp in pairs(stats) do
-        if xp >= 50 then
-            print("Eligible stat:", stat, "XP:", xp)
+    local success, stats = pcall(function()
+        return game:GetService("ReplicatedStorage").Events.GetStats:InvokeServer()
+    end)
+    if success and stats then
+        for stat, xp in pairs(stats) do
+            if xp >= 50 then
+                print("Eligible stat:", stat, "XP:", xp)
+            end
         end
+    else
+        print("Failed to retrieve stats.")
     end
 end)
 
+-- Properly structure stat categories under the StatsTab
 local statCategories = {
     Physical = {"vitality", "strength", "speed", "climbing", "swinging"},
     Energy = {"energy", "flight", "fireball", "frost", "lightning"},
@@ -3477,7 +3486,7 @@ local statCategories = {
 }
 
 for category, stats in pairs(statCategories) do
-    local CategorySection = StatSection:NewSection(category .. " Abilities")
+    local CategorySection = StatsTab:NewSection(category .. " Abilities")
     for _, stat in pairs(stats) do
         CategorySection:NewButton("Upgrade " .. stat, "Upgrade " .. stat .. " instantly", function()
             if canUpgrade(stat) then
