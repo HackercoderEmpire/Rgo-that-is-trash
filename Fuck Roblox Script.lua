@@ -116,11 +116,11 @@ local function createCyberUI()
     end
 
     createButton("▶ Start Script (WIP)", 0.45, Color3.fromRGB(0, 170, 255), function()
-        showNotification("Script", "This feature is under maintenance.", 3)
+        local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Age%20of%20Fuck%20you.lua"))()
     end)
 
-    createButton("🚧 Executor Updating", 0.68, Color3.fromRGB(100, 100, 100), function()
-        showNotification("Update", "Executor is being updated. Stay tuned!", 3)
+    createButton("🚧 Executor", 0.68, Color3.fromRGB(100, 100, 100), function()
+                local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HackercoderEmpire/Rgo-that-is-trash/refs/heads/main/Xeno%20UI%20Executor.lua"))()
     end)
 end
 
