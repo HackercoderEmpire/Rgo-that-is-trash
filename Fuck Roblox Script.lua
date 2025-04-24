@@ -77,4 +77,4 @@ local function createCustomNotification(title, message, duration)
 end
 
 -- ✅ Example usage
-createCustomNotification("🔔 Future Hub", "Updating Will Be Back Soon", 5)
+createCustomNotification("🔔 Future Hub", "2025 update now here more soon", 5)
