@@ -114,7 +114,7 @@ createScriptButton(mainTab, "Infinite Yield", 0.37, function()
 	loadstring(game:HttpGet("https://cdn.wearedevs.net/scripts/Infinite%20Yield.txt"))()
 end)
 
-createScriptButton(mainTab, "Solara Hub v3", 0.49, function()
+createScriptButton(mainTab, "(pending fix) Solara Hub v3", 0.49, function()
 	loadstring(game:HttpGet("https://cdn.wearedevs.net/scripts/Solara%20Hub%20v3.txt"))()
 end)
 
