@@ -40,11 +40,6 @@ local GTab = Window:NewTab("Misc");
 local GSection = GTab:NewSection("Chat spam/spoof - Infinite Yield");
 
 
-
-GUISection:NewButton("Stolen Script", "this script was Skidded by a retard", function(state)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/SirUsefull/Zennedy/main/AgeOfHerosUltimate.txt"))()
-end)
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
