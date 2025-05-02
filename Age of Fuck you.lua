@@ -1682,7 +1682,7 @@ TeleTab:CreateToggle({
     end,
 })
 -- Carry Player Toggle
-SettingsSection:CreateToggle({
+SettingsTab:CreateToggle({
     Name = "Carry Player",
     Description = "Toggle to carry the selected player",
     Default = false,
