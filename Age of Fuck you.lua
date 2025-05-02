@@ -18,7 +18,7 @@ local Window = Rayfield:CreateWindow({
     },
     KeySystem = true,
     KeySettings = {
-        Title = "Untitled",
+        Title = "Scripters New Script(Beta)",
         Subtitle = "Key System",
         Note = "Get the key to fucking use it",
         FileName = "The Key",
