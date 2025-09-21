@@ -1,3 +1,6 @@
+--// to the 2 peoplee who are constantly watching this repo, get a life yall weird.
+--// to the people who are still forking this unoptimized garbage, if you want a custom optimized rewrite for $, hmu on discord: federal6768 or federal.
+
 local Kavo = {}
 
 local tween = game:GetService("TweenService")
@@ -232,7 +235,7 @@ function Kavo.CreateLib(kavName, themeList)
 	Main.BackgroundColor3 = themeList.Background
 	Main.ClipsDescendants = true
 	Main.Position = UDim2.new(0.336503863, 0, 0.275485456, 0)
-	Main.Size = UDim2.new(0, 725, 0, 318) -- Increased width from 525 to 725
+	Main.Size = UDim2.new(0, 525, 0, 318)
 
 	MainCorner.CornerRadius = UDim.new(0, 4)
 	MainCorner.Name = "MainCorner"
@@ -242,7 +245,7 @@ function Kavo.CreateLib(kavName, themeList)
 	MainHeader.Parent = Main
 	MainHeader.BackgroundColor3 = themeList.Header
 	Objects[MainHeader] = "BackgroundColor3"
-	MainHeader.Size = UDim2.new(0, 725, 0, 29) -- Increased width from 525 to 725
+	MainHeader.Size = UDim2.new(0, 525, 0, 29)
 	headerCover.CornerRadius = UDim.new(0, 4)
 	headerCover.Name = "headerCover"
 	headerCover.Parent = MainHeader
@@ -253,7 +256,7 @@ function Kavo.CreateLib(kavName, themeList)
 	Objects[coverup] = "BackgroundColor3"
 	coverup.BorderSizePixel = 0
 	coverup.Position = UDim2.new(0, 0, 0.758620679, 0)
-	coverup.Size = UDim2.new(0, 725, 0, 7) -- Increased width from 525 to 725
+	coverup.Size = UDim2.new(0, 525, 0, 7)
 
 	title.Name = "title"
 	title.Parent = MainHeader
@@ -327,7 +330,7 @@ function Kavo.CreateLib(kavName, themeList)
 	pages.BackgroundTransparency = 1.000
 	pages.BorderSizePixel = 0
 	pages.Position = UDim2.new(0.299047589, 0, 0.122641519, 0)
-	pages.Size = UDim2.new(0, 560, 0, 269) -- Increased width from 360 to 560
+	pages.Size = UDim2.new(0, 360, 0, 269)
 
 	Pages.Name = "Pages"
 	Pages.Parent = pages
@@ -339,8 +342,7 @@ function Kavo.CreateLib(kavName, themeList)
 	infoContainer.BorderColor3 = Color3.fromRGB(27, 42, 53)
 	infoContainer.ClipsDescendants = true
 	infoContainer.Position = UDim2.new(0.299047619, 0, 0.874213815, 0)
-	infoContainer.Size = UDim2.new(0, 568, 0, 33) -- Increased width from 368 to 568
-
+	infoContainer.Size = UDim2.new(0, 368, 0, 33)
 
 
 	coroutine.wrap(function()
