@@ -1,4 +1,4 @@
-local Scripter = {}
+local Kavo = {}
 
 local tween = game:GetService("TweenService")
 local tweeninfo = TweenInfo.new
@@ -7,7 +7,7 @@ local run = game:GetService("RunService")
 
 local Utility = {}
 local Objects = {}
-function Scripter:DraggingEnabled(frame, parent)
+function Kavo:DraggingEnabled(frame, parent)
         
     parent = parent or frame
     
@@ -84,12 +84,12 @@ local themeStyles = {
         TextColor = Color3.fromRGB(255,255,255),
         ElementColor = Color3.fromRGB(74, 58, 84)
     },
-    Scripter = {
-       SchemeColor = Color3.fromRGB(72, 144, 255),  -- bright ocean blue
-       Background = Color3.fromRGB(15, 22, 43),     -- deep midnight navy
-       Header = Color3.fromRGB(25, 35, 60),         -- soft dark blue for headers
-       TextColor = Color3.fromRGB(220, 235, 255),   -- soft white-blue text
-       ElementColor = Color3.fromRGB(40, 60, 90)    -- balanced mid-tone for buttons/elements
+    Ocean = {
+        SchemeColor = Color3.fromRGB(86, 76, 251),
+        Background = Color3.fromRGB(26, 32, 58),
+        Header = Color3.fromRGB(38, 45, 71),
+        TextColor = Color3.fromRGB(200, 200, 200),
+        ElementColor = Color3.fromRGB(38, 45, 71)
     },
     Midnight = {
         SchemeColor = Color3.fromRGB(26, 189, 158),
@@ -126,7 +126,7 @@ local SettingsT = {
 
 }
 
-local Name = "ScripterConfig.JSON"
+local Name = "KavoConfig.JSON"
 
 pcall(function()
 
@@ -159,8 +159,8 @@ function Kavo.CreateLib(kavName, themeList)
         themeList = themeStyles.BloodTheme
     elseif themeList == "GrapeTheme" then
         themeList = themeStyles.GrapeTheme
-    elseif themeList == "Scripter" then
-        themeList = themeStyles.Scripter
+    elseif themeList == "Ocean" then
+        themeList = themeStyles.Ocean
     elseif themeList == "Midnight" then
         themeList = themeStyles.Midnight
     elseif themeList == "Sentinel" then
@@ -185,10 +185,10 @@ function Kavo.CreateLib(kavName, themeList)
 
     themeList = themeList or {}
     local selectedTab 
-    ScripterName = ScripterName or "Library"
-    table.insert(Scripter, ScripterName)
+    kavName = kavName or "Library"
+    table.insert(Kavo, kavName)
     for i,v in pairs(game.CoreGui:GetChildren()) do
-        if v:IsA("ScreenGui") and v.Name == ScripterName then
+        if v:IsA("ScreenGui") and v.Name == kavName then
             v:Destroy()
         end
     end
@@ -211,7 +211,7 @@ function Kavo.CreateLib(kavName, themeList)
 
     local blurFrame = Instance.new("Frame")
 
-    Scripter:DraggingEnabled(MainHeader, Main)
+    Kavo:DraggingEnabled(MainHeader, Main)
 
     blurFrame.Name = "blurFrame"
     blurFrame.Parent = pages
@@ -2642,4 +2642,4 @@ function Kavo.CreateLib(kavName, themeList)
     end  
     return Tabs
 end
-return Scripter
+return Kavo
